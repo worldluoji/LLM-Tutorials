@@ -2,9 +2,13 @@ from pymilvus import MilvusClient
 import numpy as np
 
 client = MilvusClient("./milvus_demo.db")
+
+if client.has_collection(collection_name="demo_collection"):
+    client.drop_collection(collection_name="demo_collection")
+
 client.create_collection(
     collection_name="demo_collection",
-    dimension=384  # The vectors we will use in this demo has 384 dimensions
+    dimension=384,  # The vectors we will use in this demo has 384 dimensions
 )
 
 # Text strings to search from.
@@ -15,7 +19,8 @@ docs = [
 ]
 
 '''
-For illustration, here we use fake vectors with random numbers (384 dimension).
+如果由于网络问题无法下载模型，作为一种走马观花的方法，你可以使用随机向量来表示文本，仍然可以完成示例。
+只需注意，由于向量是假向量，搜索结果不会反映语义相似性。
 
 np.random.uniform(-1, 1)：生成一个在 -1 到 1 之间的随机浮点数。
 
