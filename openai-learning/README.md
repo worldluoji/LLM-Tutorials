@@ -53,3 +53,15 @@ pip3 config set global.index-url https://mirrors.aliyun.com/pypi/simple
 pip3 install -r requirements.txt
 ```
 The requirements.txt was created by command "pip3 freeze > requirements.txt"
+
+
+## API兼容性
+因为 OpenAI 是行业标杆，因此后续几乎所有的模型厂商的 API 都是兼容 OpenAI 数据格式的，都可以直接使用OpenAI SDK。
+
+如果 base_url 不设置，由于使用了 OpenAI SDK，就会默认请求 OpenAI 的服务。如果使用的阿里云百炼，base_url 需要改为百炼服务器的地址：
+```py
+client = OpenAI(
+    api_key=os.getenv("AliDeep"),  
+    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+)
+```
