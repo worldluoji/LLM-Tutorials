@@ -21,3 +21,78 @@ llama.cpp 出现的背景是 2023 年 Meta 开源 Llama 系列大语言模型后
 
 ## 使用 llama.cpp 部署 DeepSeek
 硬件准备好后，就需要准备 llama.cpp 工具了。llama.cpp 的使用可以通过源码进行编译，也可以使用作者编译好的 release 版本。链接如下：https://github.com/ggerganov/llama.cpp/releases
+
+系统是 ubuntu22.04，因此选择的是 llama-b4707-bin-ubuntu-x64.zip。下载后，放到环境变量目录进行解压。ubuntu 系统解压到 /usr/local/llama  即可。
+
+之后在 /etc/profile 文件配置一下环境变量，确保 llama.cpp 的二进制工具，可以在任意地方执行。
+```
+llama ls
+```
+
+如果你的系统没有装 gcc，需要装一下，否则会报找不到库的错误。
+```
+sudo apt install build-essential
+gcc --version
+```
+
+最后还需要配置一下 lib 库的环境变量：
+```
+LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
+```
+这是因为 llama.cpp 自带了一堆 .so，需要能被引用到。
+
+
+下一步是下载模型。需要下载适配好 llama.cpp 的 GGUF 版本，而不是 DeepSeek 的原版本。 GGUF 版本链接如下：https://www.modelscope.cn/models/unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF/files
+
+我们选择 DeepSeek-R1-Distill-Qwen-7B-Q6_K_M.gguf 作为本次实验模型。等待下载完成后，便可以启动了。我们先来启动一个可以直接交互的版本：
+```
+llama-cli -m ./DeepSeek-R1-Distill-Qwen-7B-Q6_K_M.gguf -co -cnv -p "你 是 一 个 python编 程 专 家 " -n 512
+```
+
+既然服务器没有显存，那模型就只能占用内存了。我们看一下，这个模型占了多少内存。使用命令：
+```
+ps aux --sort=%mem
+```
+
+## 发布成 HTTP 服务
+方法一：使用官方提供的命令启动
+```
+llama-server --model DeepSeek-R1-Distill-Qwen-7B-Q6_K_M.gguf
+```
+测试效果：
+```shell
+curl http://localhost:8080/v1/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "deepseek-r1",
+        "prompt": "你好",
+        "max_tokens": 1024,
+        "temperature": 0
+    }'
+```
+
+第二种方法：使用第三方库
+```shell
+apt install ninja-build
+
+
+pip install uvicorn anyio starlette fastapi sse_starlette starlette_context pydantic_settings
+
+
+pip install llama-cpp-python -i https://mirrors.aliyun.com/pypi/simple/ 
+```
+安装完成后再运行模型
+```
+python3 -m llama_cpp.server --model ./DeepSeek-R1-Distill-Qwen-7B-Q6_K_M.gguf
+```
+第三方库的好处在于兼容 OpenAI 数据格式，此时可以用 OpenAI 方式访问:
+```shell
+curl http://localhost:8000/v1/chat/completions \
+-H "Content-Type: application/json" \
+-d '{
+        "messages": [
+                {"role": "system", "content": "你是一个python专家"},
+                {"role": "user", "content": "python的字典数据类型如何定义"}
+        ]
+}'
+```
