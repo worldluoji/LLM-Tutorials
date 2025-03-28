@@ -3,7 +3,7 @@
 
 当前目录下启动：
 ```bash
-uv run mcp dev main.py # 5173端口会启动一个服务可浏览器访问调试
+uv run mcp dev main.py # 5173端口会启动一个服务，可浏览器访问该页面调试
 
 uv run mcp run main.py
 ```
@@ -50,3 +50,19 @@ def get_score_by_name(name):
         return "未搜到该员工的绩效"
 ```
 使用 Low-Level SDK，写法会与上面的代码类似，也是要分开。但是使用 FastMCP，就可以写在一起，把工具的描述以字符串的形式写在函数的开头。
+
+## Roo Code 配置
+```json
+{
+  "mcpServers": {
+    "achievement": {
+      "url": "http://localhost:3000/sse?transportType=stdio&command=uv&args=run+--with+mcp+mcp+run+%2FUsers%2Fluke-surface-mac%2Fcode%2FAI-Drawing-Tutorials%2Fcatalyst%2FAgent%2Fachievement%2Fmain.py&env=%7B%22HOME%22%3A%22%2FUsers%2Fluke-surface-mac%22%2C%22LOGNAME%22%3A%22luke-surface-mac%22%2C%22PATH%22%3A%22%2FUsers%2Fluke-surface-mac%2F.npm%2F_npx%2F5a9d879542beca3a%2Fnode_modules%2F.bin%3A%2FUsers%2Fluke-surface-mac%2Fnode_modules%2F.bin%3A%2FUsers%2Fnode_modules%2F.bin%3A%2Fnode_modules%2F.bin%3A%2Fusr%2Flocal%2Flib%2Fnode_modules%2Fnpm%2Fnode_modules%2F%40npmcli%2Frun-script%2Flib%2Fnode-gyp-bin%3A%2FUsers%2Fluke-surface-mac%2F.cache%2Fuv%2Farchive-v0%2FowJ-LRbJ4gSFrvzlIibhR%2Fbin%3A%2Fusr%2Flocal%2Fbin%3A%2FUsers%2Fluke-surface-mac%2F.local%2Fbin%3A%2Fusr%2Flocal%2Fbin%3A%2FUsers%2Fluke-surface-mac%2F.local%2Fstate%2Ffnm_multishells%2F58151_1743146928979%2Fbin%3A%2Fusr%2Flocal%2Fopt%2Fopenjdk%4017%2Fbin%3A%2FApplications%2FXcode.app%2FContents%2FDeveloper%2Fusr%2Fbin%3A%2Fusr%2Flocal%2Fopt%2Fruby%403.3%2Fbin%3A%2Fusr%2Flocal%2Fopt%2Fgradle%2Fbin%3A%2Fusr%2Flocal%2Fbin%3A%2Fusr%2Flocal%2Fsbin%3A%2FSystem%2FCryptexes%2FApp%2Fusr%2Fbin%3A%2Fusr%2Fbin%3A%2Fbin%3A%2Fusr%2Fsbin%3A%2Fsbin%3A%2Fvar%2Frun%2Fcom.apple.security.cryptexd%2Fcodex.system%2Fbootstrap%2Fusr%2Flocal%2Fbin%3A%2Fvar%2Frun%2Fcom.apple.security.cryptexd%2Fcodex.system%2Fbootstrap%2Fusr%2Fbin%3A%2Fvar%2Frun%2Fcom.apple.security.cryptexd%2Fcodex.system%2Fbootstrap%2Fusr%2Fappleinternal%2Fbin%3A%2FLibrary%2FApple%2Fusr%2Fbin%3A%2FUsers%2Fluke-surface-mac%2Fdev%2Fandroid-sdk%2Fplatform-tools%2F%3A%2FUsers%2Fluke-surface-mac%2Fdev%2Fandroid-sdk%2Fcmdline-tools%2Flatest%2Fbin%2F%3A%2FUsers%2Fluke-surface-mac%2Fdev%2Fandroid-sdk%2Fbuild-tools%3A%2FUsers%2Fluke-surface-mac%2Fdev%2Fandroid-sdk%2Femulator%2F%22%2C%22SHELL%22%3A%22%2Fbin%2Fzsh%22%2C%22TERM%22%3A%22xterm-256color%22%2C%22USER%22%3A%22luke-surface-mac%22%7D"
+    }
+  }
+}
+```
+在Roo Code中，添加MCP Server的配置，上面的路径是通过
+```bash
+uv run mcp dev main.py
+```
+启动的dev服务，端口5173，在浏览器中通过 http://localhost:5173 访问，点击connect按钮，通过浏览器的“网络查”看日志，找到mcp server的url，替换上面的url。
