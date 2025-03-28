@@ -13,7 +13,3 @@ def get_score_by_name(name: str) -> str:
         return "name: 李四 绩效评分: 92.7"
     else:
         return "未搜到该员工的绩效"
-    
-if __name__ == "__main__":
-    # Initialize and run the server
-    mcp.run()
