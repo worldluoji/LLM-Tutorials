@@ -1,0 +1,49 @@
+Metadata-Version: 2.4
+Name: achievement
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.13
+Description-Content-Type: text/markdown
+Requires-Dist: mcp[cli]>=1.6.0
+
+# MCP Server Python Demo
+## 启动
+```bash
+uv run mcp dev main.py
+```
+
+---
+
+## SDK说明
+MCP Server 的 Python SDK，分为 FastMCP SDK 和 Low-Lever SDK 两种。FastMCP 是在 Low-Level 的基础上又做了一层封装，不论是写代码，还是项目依赖等，操作起来都更加简单，容易上手。
+
+该示例里使用 FastMCP。
+
+示例等价于 Function Calling，使用函数调用的方式调用工具:
+```py
+tools = [
+    {
+        "name": "get_score_by_name",
+        "description": "使用该工具获取指定员工的绩效评分",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "员工名字",
+                }
+            },
+            "required": ["name"]
+        },
+    }
+]
+
+def get_score_by_name(name):
+    if name == "张三":
+        return "name: 张三 绩效评分: 85.9"
+    elif name == "李四":
+        return "name: 李四 绩效评分: 92.7"
+    else:
+        return "未搜到该员工的绩效"
+```
+使用 Low-Level SDK，写法会与上面的代码类似，也是要分开。但是使用 FastMCP，就可以写在一起，把工具的描述以字符串的形式写在函数的开头。
