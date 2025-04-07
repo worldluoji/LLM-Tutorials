@@ -1,0 +1,22 @@
+[project]
+name = "jobsearch-mcp-server"
+version = "1.0.0"
+description = "MCP Server for interacting with Jobsearch"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "fastmcp>=0.4.0",
+    "openai>=1.70.0",
+    "selenium>=4.31.0",
+]
+
+[project.scripts]
+jobsearch-mcp-server = "jobsearch_mcp_server:main"
+
+[build-system]
+requires = [
+    "hatchling",
+]
+build-backend = "hatchling.build"
