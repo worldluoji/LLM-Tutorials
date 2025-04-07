@@ -1,0 +1,23 @@
+Metadata-Version: 2.4
+Name: mcp-client-demo
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.13
+Description-Content-Type: text/markdown
+Requires-Dist: mcp[cli]>=1.6.0
+
+该工程用于演示 MCP的 client端。使用stdio模式。
+
+工程使用如下命令创建而来：
+```shell
+uv init mcp-client-demo
+
+uv add "mcp[cli]"
+
+pipx install mcp
+```
+
+运行：
+```shell
+uv run client.py
+```

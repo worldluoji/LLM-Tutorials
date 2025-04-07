@@ -19,8 +19,12 @@ class JobTools(LLMClient):
             return jobs
 
         @mcp.tool(description="根据岗位列表以及求职者的简历获取适合该求职者的岗位以及求职建议")
-        def get_job_by_resume(jobs: str, resume: str) -> str:
+        def get_job_by_resume(jobs: str | None, resume: str) -> str:
             """根据岗位列表以及求职者的简历获取适合该求职者的岗位以及求职建议"""
+            if jobs is None:
+                with open('job.txt', 'r', encoding='utf-8') as f:
+                    jobs = f.read()
+
             #将简历以及岗位列表注入到 prompt 模板
             prompt = Job_Search_Prompt.format(resume=resume,job_list=jobs)
             messages = [{"role": "user", "content": prompt}]
