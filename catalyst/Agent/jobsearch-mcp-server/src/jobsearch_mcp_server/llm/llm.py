@@ -22,7 +22,8 @@ class LLMClient:
 
     def send_messages(self, messages):
         response = self.client.chat.completions.create(
-            model="deepseek-reasoner",
+            # deepseek-reasoner for r1, deepseek-chat for v3
+            model="deepseek-chat",
             messages=messages,
         )
         return response
