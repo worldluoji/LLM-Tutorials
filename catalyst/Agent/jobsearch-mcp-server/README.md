@@ -13,3 +13,7 @@ deepseek=<your_key>
 ```shell
 uv run jobsearch-mcp-server
 ```
+
+```
+uv run mcp dev
+```

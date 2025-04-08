@@ -2,6 +2,7 @@ from typing import Any
 from ..llm.llm import LLMClient 
 from ..prompt.prompt import Job_Search_Prompt
 from ..selenium.listjob import listjob_by_keyword
+from ..word.word import read_word_file
 
 class JobTools(LLMClient):
     def register_tools(self, mcp: Any):
@@ -36,3 +37,14 @@ class JobTools(LLMClient):
             response_text = response.choices[0].message.content
 
             return response_text
+        
+
+class ResumeTools():
+    def register_tools(self, mcp: Any):
+        """Register job tools."""
+
+        @mcp.tool(description="读取指定路径的word文件")
+        def get_word_by_filepath(filepath: str) -> list:
+            """根据文件路径获取word文件内容"""
+            content=read_word_file(filepath)
+            return content
