@@ -29,14 +29,14 @@ OpenAI 专门提供了一个 moderate 接口，可以让你对输入以及返回
 通过llama-index ，将外部的资料库索引入后进行问答
 -> 8. llama-index
 
-## 6. LLMChain
+## 6. langchain
 通过 Langchain 这个开源库，对大语言模型进行链式调用 
--> 9. LLMChain
+
 
 ## 7. openai有哪些engine?
--> openai-engines
+-> catalyst/LangChain
 
-<br>
+---
 
 ## preparation
 1. 更新pip
