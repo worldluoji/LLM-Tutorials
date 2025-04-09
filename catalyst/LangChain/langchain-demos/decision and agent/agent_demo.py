@@ -1,8 +1,18 @@
 
+import os
 from langchain.agents import initialize_agent, Tool
-from langchain.llms import OpenAI
+from langchain_openai.chat_models.base import BaseChatOpenAI
 
-llm = OpenAI(temperature=0)
+from dotenv import load_dotenv
+
+load_dotenv()
+
+llm = BaseChatOpenAI(
+    model='deepseek-chat',  # 使用DeepSeek聊天模型
+    openai_api_key=os.environ.get("deepseek"),  # 替换为你的API易API密钥
+    openai_api_base='https://api.deepseek.com',  # API易的端点
+    max_tokens=1024  # 设置最大生成token数
+)
 
 def search_order(input: str) -> str:
     return "订单状态：已发货；发货日期：2023-01-01；预计送达时间：2023-01-10"
@@ -33,12 +43,12 @@ tools = [
 agent = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True)
 
 question = "我想买一件衣服，但是不知道哪个款式好看，你能帮我推荐一下吗？"
-result = agent.run(question)
+result = agent.invoke(question)
 print(result)
 
 
 question = "请问你们的货，能送到三亚吗？大概需要几天？"
-result = agent.run(question)
+result = agent.invoke(question)
 print(result)
 
 # 其实它就是把一系列的工具名称和对应的描述交给了 OpenAI，让它根据用户输入的需求，选取对应的工具，然后提取用户输入中和用户相关的信息。本质上，只是我们上面让 AI 做选择题的一种扩展而已。
