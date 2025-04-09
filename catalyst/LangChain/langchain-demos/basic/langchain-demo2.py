@@ -25,7 +25,7 @@ q2_prompt = PromptTemplate(
 )
 q3_prompt = PromptTemplate(
     input_variables=["team1", "team2"],
-    template="{team1}和{team2}哪只球队获得欧冠的次数多一些？"
+    template="{team1}和{team2}至今为止哪只球队获得欧冠的次数多一些？"
 )
 
 chain1 = (
