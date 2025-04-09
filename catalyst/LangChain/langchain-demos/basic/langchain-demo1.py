@@ -1,44 +1,71 @@
+import os
 
-import openai, os
-from langchain.prompts import PromptTemplate
-from langchain.llms import OpenAI
-from langchain.chains import LLMChain, SimpleSequentialChain
+from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnablePassthrough, RunnableParallel
+from langchain_openai.chat_models.base import BaseChatOpenAI
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+from dotenv import load_dotenv
 
-# LLM，也就是我们使用哪个大语言模型，来回答我们提出的问题。在这里，我们还是使用 OpenAIChat，也就是 gpt-3.5-turbo 模型。
-llm = OpenAI(model_name="gpt-3.5-turbo-instruct", max_tokens=2048, temperature=0.5)
+load_dotenv()
 
-# PromptTemplate 可以定义一个提示语模版，里面能够定义一些可以动态替换的变量。比如这个模版里，我们就定义了一个叫做 question 的变量，因为我们每次问的问题都会不一样
+llm = BaseChatOpenAI(
+    model='deepseek-chat',  # 使用DeepSeek聊天模型
+    openai_api_key=os.environ.get("deepseek"),  # 替换为你的API易API密钥
+    openai_api_base='https://api.deepseek.com',  # API易的端点
+    max_tokens=1024  # 设置最大生成token数
+)
+
+# ===== 1. 定义提示词模板（保持不变）=====
 en_to_zh_prompt = PromptTemplate(
-    template="请把下面这句话翻译成英文： \n\n {question}?", input_variables=["question"]
+    template="请把下面这句话翻译成英文：\n\n{question}",
+    input_variables=["question"]
 )
 
 question_prompt = PromptTemplate(
-    template = "{english_question}", input_variables=["english_question"]
+    template="{english_question}",
+    input_variables=["english_question"]
 )
 
 en_to_cn_prompt = PromptTemplate(
-    input_variables=["english_answer"],
-    template="请把下面这一段翻译成中文： \n\n{english_answer}?",
+    template="请把下面这一段翻译成中文：\n\n{english_answer}",
+    input_variables=["english_answer"]
 )
 
-question_translate_chain = LLMChain(llm=llm, prompt=en_to_zh_prompt, output_key="english_question")
-# english = question_translate_chain.run(question="请你作为一个机器学习的专家，介绍一下CNN的原理。")
-# print(english)
+# ===== 2. 重构 Chain（关键修复）=====
+# 链1：问题翻译（中→英）
+question_translate_chain = (
+    RunnableParallel({"question": RunnablePassthrough()})  # 明确输入字段
+    | en_to_zh_prompt
+    | llm
+    | (lambda x: {"english_question": x.content})
+)
 
-qa_chain = LLMChain(llm=llm, prompt=question_prompt, output_key="english_answer")
-# english_answer = qa_chain.run(english_question=english)
-# print(english_answer)
+# 链2：生成英文答案
+qa_chain = (
+    RunnableParallel({"english_question": RunnablePassthrough()})
+    | question_prompt
+    | llm
+    | (lambda x: {"english_answer": x.content})
+)
 
-answer_translate_chain = LLMChain(llm=llm, prompt=en_to_cn_prompt)
-# answer = answer_translate_chain.run(english_answer=english_answer)
-# print(answer)
+# 链3：答案翻译（英→中）
+answer_translate_chain = (
+    RunnableParallel({"english_answer": RunnablePassthrough()})
+    | en_to_cn_prompt
+    | llm
+    | (lambda x: {"answer": x.content})
+)
 
+# ===== 3. 组合完整流程 =====
+chinese_qa_chain = (
+    RunnablePassthrough()  # 输入为字符串（如用户问题）
+    | question_translate_chain
+    | qa_chain
+    | answer_translate_chain
+)
 
-# 这个 LLMChain 会自动地链式搞定
-chinese_qa_chain = SimpleSequentialChain(
-    chains=[question_translate_chain, qa_chain, answer_translate_chain], input_key="question",
-    verbose=True)
-answer = chinese_qa_chain.run(question="请你作为一个IT专家，介绍一下外国人如何在加拿大找到一份程序开发的工作")
-print(answer)
+# ===== 4. 执行链 =====
+response = chinese_qa_chain.invoke(
+    "请你作为一个有远程工作经验的IT专家，在我已经熟悉JS、NodeJS、python、React、Vue的前提下，介绍一下外国人如何找到一份英语国家的远程IT工作"
+)
+print(response["answer"])
