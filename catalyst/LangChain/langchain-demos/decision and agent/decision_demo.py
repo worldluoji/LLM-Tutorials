@@ -1,13 +1,20 @@
 
-import openai, os
+import os
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnablePassthrough, RunnableParallel
+from langchain_openai.chat_models.base import BaseChatOpenAI
 
-from langchain.prompts import PromptTemplate
-from langchain.llms import OpenAIChat
-from langchain.chains import LLMChain
+from dotenv import load_dotenv
 
-llm = OpenAIChat(max_tokens=2048, temperature=0.5)
+load_dotenv()
+
+llm = BaseChatOpenAI(
+    model='deepseek-chat',  # 使用DeepSeek聊天模型
+    openai_api_key=os.environ.get("deepseek"),  # 替换为你的API易API密钥
+    openai_api_base='https://api.deepseek.com',  # API易的端点
+    max_tokens=1024  # 设置最大生成token数
+)
 multiple_choice = """
 请针对 >>> 和 <<< 中间的用户问题，选择一个合适的工具去回答她的问题。只要用A、B、C的选项字母告诉我答案。
 如果你觉得都不合适，就选D。
@@ -21,10 +28,17 @@ C. 一个能够搜索商家的退换货政策、运费、物流时长、支付�
 D. 都不合适
 """
 multiple_choice_prompt = PromptTemplate(template=multiple_choice, input_variables=["question"])
-choice_chain = LLMChain(llm=llm, prompt=multiple_choice_prompt, output_key="answer")
+
+choice_chain = (
+    RunnableParallel({"question": RunnablePassthrough()})
+    | multiple_choice_prompt
+    | llm
+    | (lambda x: {"answer": x.content})
+)
+
 
 question = "请问你们的货，能送到三亚吗？大概需要几天？"
-print(choice_chain(question))
+print(choice_chain.invoke(question))
 
 question = "我想买一件衣服，但是不知道哪个款式好看，你能帮我推荐一下吗？"
-print(choice_chain(question))
+print(choice_chain.invoke(question))

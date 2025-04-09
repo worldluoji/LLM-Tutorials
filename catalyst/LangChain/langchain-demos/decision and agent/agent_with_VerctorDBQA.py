@@ -1,14 +1,31 @@
-
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.text_splitter import SpacyTextSplitter,CharacterTextSplitter
-from langchain import OpenAI, VectorDBQA
-from langchain.document_loaders import TextLoader,CSVLoader
-from langchain.agents import initialize_agent, Tool
 import re
 import json
+import os
 
-llm = OpenAI(temperature=0)
+from langchain_community.vectorstores import FAISS
+from langchain_community.document_loaders import TextLoader, CSVLoader
+
+from langchain_openai import OpenAIEmbeddings
+from langchain_openai.chat_models.base import BaseChatOpenAI
+
+from langchain.chains import VectorDBQA
+from langchain.agents import initialize_agent, tool
+from langchain.text_splitter import SpacyTextSplitter,CharacterTextSplitter
+
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+llm = BaseChatOpenAI(
+    model='deepseek-chat',  # 使用DeepSeek聊天模型
+    openai_api_key=os.environ.get("deepseek"),  # 替换为你的API易API密钥
+    openai_api_base='https://api.deepseek.com',  # API易的端点
+    max_tokens=1024,  # 设置最大生成token数,
+    temperature=0
+)
+
+
 loader = TextLoader('../data/ecommerce_faq.txt')
 documents = loader.load()
 text_splitter = SpacyTextSplitter(chunk_size=256, pipeline="zh_core_web_sm")
@@ -19,7 +36,6 @@ docsearch = FAISS.from_documents(texts, embeddings)
 
 faq_chain = VectorDBQA.from_chain_type(llm=llm, vectorstore=docsearch, verbose=True)
 
-from langchain.agents import tool
 
 # 我们通过 @tool 这个 Python 的 decorator 功能，将 FAQ 这个函数直接变成了 Tool 对象，这可以减少我们每次创建 Tools 的时候都要指定 name 和 description 的工作。
 @tool("FAQ")
@@ -88,13 +104,13 @@ tools = [
 agent = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True)
 
 question = "请问你们的货，能送到三亚吗？大概需要几天？"
-result = agent.run(question)
+result = agent.invoke(question)
 print(result)
 
 question = "我想买一件衣服，想要在春天去公园穿，但是不知道哪个款式好看，你能帮我推荐一下吗？"
-answer = agent.run(question)
+answer = agent.invoke(question)
 print(answer)
 
 question = "我有一张订单，订单号是 2022ABCDE，一直没有收到，能麻烦帮我查一下吗？"
-answer = agent.run(question)
+answer = agent.invoke(question)
 print(answer)
