@@ -1,7 +1,7 @@
 
 import openai, os
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain, LLMRequestsChain, TransformChain, SequentialChain
+from langchain.chains import LLMChain, LLMRequestsChain
 from langchain.llms import OpenAI
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -27,7 +27,6 @@ result=requests_chain(inputs)
 print(result)
 print(result['output'])
 
-import re
 def parse_weather_info(weather_info: str) -> dict:
     # 将天气信息拆分成不同部分
     parts = weather_info.split('; ')
@@ -60,16 +59,3 @@ def parse_weather_info(weather_info: str) -> dict:
 weather_info = "小雨; 10℃～15℃; 东北风 风力4-5级"
 weather_dict = parse_weather_info(weather_info)
 print(weather_dict)
-
-# 使用TransformChain转化为JSON
-# def transform_func(inputs: dict) -> dict:
-#     text = inputs["output"]
-#     return {"weather_info" : parse_weather_info(text)}
-
-# transformation_chain = TransformChain(input_variables=["output"], 
-#                                       output_variables=["weather_info"], transform=transform_func)
-
-# final_chain = SequentialChain(chains=[requests_chain, transformation_chain], 
-#                               input_variables=["query", "url"], output_variables=["weather_info"])
-# final_result = final_chain.run(inputs)
-# print(final_result)
