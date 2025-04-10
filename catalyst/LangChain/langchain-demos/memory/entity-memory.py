@@ -1,10 +1,22 @@
 
+import os
+
 from langchain.chains import ConversationChain
 from langchain.memory import ConversationEntityMemory
 from langchain.memory.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
-from langchain.llms import OpenAI
 
-llm = OpenAI()
+from langchain_openai.chat_models.base import BaseChatOpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# 初始化LLM
+llm = BaseChatOpenAI(
+    model='deepseek-chat',  # 使用DeepSeek聊天模型
+    openai_api_key=os.environ.get("deepseek"),  # 替换为你的API易API密钥
+    openai_api_base='https://api.deepseek.com',  # API易的端点
+    max_tokens=1024  # 设置最大生成token数
+)
 
 entityMemory = ConversationEntityMemory(llm=llm)
 conversation = ConversationChain(
