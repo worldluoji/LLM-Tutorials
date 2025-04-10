@@ -31,6 +31,7 @@ class WindowedChatHistory(BaseChatMessageHistory):
         """获取已截断的历史记录"""
         return self._truncate()
 
+    # 每次请求大模型完成之后，才执行add_message/add_messages, 所以要到第5轮执行时，才会忽略第1轮的消息
     def add_message(self, message):
         self._messages.append(message)
     
