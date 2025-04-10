@@ -4,13 +4,14 @@ import os
 
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import TextLoader, CSVLoader
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
-from langchain_openai import OpenAIEmbeddings
+# from langchain_openai import OpenAIEmbeddings
 from langchain_openai.chat_models.base import BaseChatOpenAI
 
 from langchain.chains import VectorDBQA
 from langchain.agents import initialize_agent, tool
-from langchain.text_splitter import SpacyTextSplitter,CharacterTextSplitter
+from langchain.text_splitter import CharacterTextSplitter, RecursiveCharacterTextSplitter 
 
 from dotenv import load_dotenv
 
@@ -28,10 +29,23 @@ llm = BaseChatOpenAI(
 
 loader = TextLoader('../data/ecommerce_faq.txt')
 documents = loader.load()
-text_splitter = SpacyTextSplitter(chunk_size=256, pipeline="zh_core_web_sm")
+
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=256,
+    chunk_overlap=20,
+    separators=["\n\n", "\n", "。", "！", "？", "，", "、", ""]
+)
+
 texts = text_splitter.split_documents(documents)
 
-embeddings = OpenAIEmbeddings()
+# embeddings = OpenAIEmbeddings()
+# 使用多语言模型（支持中文）
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+    model_kwargs={'device': 'cpu'},  # 指定使用 CPU
+    encode_kwargs={'normalize_embeddings': False}
+)
+
 docsearch = FAISS.from_documents(texts, embeddings)
 
 faq_chain = VectorDBQA.from_chain_type(llm=llm, vectorstore=docsearch, verbose=True)
@@ -48,7 +62,14 @@ product_loader = CSVLoader('../data/ecommerce_products.csv')
 product_documents = product_loader.load()
 product_text_splitter = CharacterTextSplitter(chunk_size=1024, separator="\n")
 product_texts = product_text_splitter.split_documents(product_documents)
-product_search = FAISS.from_documents(product_texts, OpenAIEmbeddings())
+
+embeddings2 = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+    model_kwargs={'device': 'cpu'},  # 指定使用 CPU
+    encode_kwargs={'normalize_embeddings': False}
+)
+
+product_search = FAISS.from_documents(product_texts, embeddings2)
 product_chain = VectorDBQA.from_chain_type(llm=llm, vectorstore=product_search, verbose=True)
 
 @tool("Recommend Product")
