@@ -3,7 +3,8 @@ import type { FastifyRequest } from 'fastify';
 import { TextDecoder } from 'node:util';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: ['.env']})
+// .env.local 中定义的同名环境变量会覆盖 .env 中的值
+dotenv.config({ path: ['.env', '.env.local']})
 
 interface QueryParams {
   question: string;
