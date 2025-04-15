@@ -47,21 +47,25 @@ fastify.get('/stream', async (request: FastifyRequest<{Querystring: QueryParams}
             throw new Error('Failed to fetch from DeepSeek');
         }
 
+        // The response.body is accessed to create a ReadableStream reader using getReader(). 
         const reader = response.body?.getReader();
         if (!reader) throw new Error('Failed to create a reader');
 
+        // The TextDecoder is used to decode the binary data from the stream into a string.
         const decoder = new TextDecoder();
         let buffer = '';
 
         // 流式数据处理器
         while (true) {
+            // read the streamed data in chunks.
             const { value, done } = await reader.read();
             if (done) break;
 
+            // Each chunk is decoded and appended to a buffer.
             const chunk = buffer + decoder.decode(value, { stream: true });
             buffer = '';
 
-            // 分割处理数据块
+            // The buffer is then split into lines, and only lines starting with data: are processed.
             const lines = chunk.split('\n')
                 .filter(line => line.trim() && line.startsWith('data: '));
 
@@ -76,7 +80,7 @@ fastify.get('/stream', async (request: FastifyRequest<{Querystring: QueryParams}
                     const jsonData = JSON.parse(data);
                     const delta = jsonData.choices[0].delta.content;
                     if (delta) {
-                        reply.raw.write(`data: ${delta}\n\n`); // 实时转发[9](@ref)
+                        reply.raw.write(`data: ${delta}\n\n`); // 实时转发
                     }
                 } catch (err) {
                     buffer += data; // 缓存不完整JSON数据
