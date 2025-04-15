@@ -16,7 +16,7 @@ if (!apiKey) {
   console.error('请设置环境变量 DASHSCOPE_API_KEY');
   process.exit(1);
 } else {
-  console.log('API Key已成功加载', apiKey);
+  console.log('API Key已成功加载');
 }
 
 // WebSocket服务器地址

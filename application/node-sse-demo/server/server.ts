@@ -3,8 +3,11 @@ import type { FastifyRequest } from 'fastify';
 import { TextDecoder } from 'node:util';
 import dotenv from 'dotenv';
 
-// .env.local 中定义的同名环境变量会覆盖 .env 中的值
-dotenv.config({ path: ['.env', '.env.local']})
+// 如果是数组，默认会取第一个.env中的变量，不会覆盖
+// dotenv.config({ path: ['.env', '.env.local']})
+
+dotenv.config({path:'.env'});
+dotenv.config({path:'.env.local', override: true});
 
 interface QueryParams {
   question: string;
@@ -14,7 +17,10 @@ interface QueryParams {
 const openaiApiKey = process.env.deepseek;
 if (!openaiApiKey) {
     throw new Error('OPENAI_API_KEY environment variable is not set');
+} else {
+    console.log('OPENAI_API_KEY environment variable is set');
 }
+
 const endpoint = 'https://api.deepseek.com/chat/completions';
 
 const fastify = Fastify({ logger: true });
