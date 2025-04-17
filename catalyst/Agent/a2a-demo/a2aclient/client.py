@@ -30,17 +30,17 @@ async def main():
             "sessionId": uuid4().hex,
             "acceptedOutputModes": ["text"],
             "message": {
-            "role": "user",
-            "parts": [
-                {  
-                    "type": "text",
-                    "text": "张三的绩效是多少分？",
-                }
-            ],
+                "role": "user",
+                "parts": [
+                    {  
+                        "type": "text",
+                        "text": "张三的绩效是多少分？",
+                    }
+                ],
             },
         }
 
-        ret=await client.send_task(payload=payload)
+        ret = await client.send_task(payload=payload)
         print(ret.model_dump_json())
     except Exception as e:
         print(f"Error occurred: {str(e)}")
