@@ -15,7 +15,7 @@ from a2aserver.agents.tools import get_score_by_name, generating_performance_rev
 
 def send_messages(messages):
     response = client.chat.completions.create(
-        model="deepseek-v3",
+        model="deepseek-chat",
         messages=messages,
     )
     return response

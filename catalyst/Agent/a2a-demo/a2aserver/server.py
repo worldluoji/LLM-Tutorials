@@ -9,20 +9,21 @@ sys.path.insert(0, project_root)
 from common.server import A2AServer
 from common.types import AgentCard, AgentCapabilities, AgentSkill, MissingAPIKeyError
 from common.utils.push_notification_auth import PushNotificationSenderAuth
-from agents.agent import SUPPORTED_CONTENT_TYPES, AgentAdapter
+from agents.agent import AgentAdapter
 from agents.task_manager import AgentTaskManager
 import click
 import logging
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(dotenv_path='.env')
+load_dotenv(dotenv_path='.env.local', override=True)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 @click.command()
 @click.option("--host", "host", default="localhost")
-@click.option("--port", "port", default=10000)
+@click.option("--port", "port", default=10008)
 def main(host, port):
     """Starts the Currency Agent server."""
     try:

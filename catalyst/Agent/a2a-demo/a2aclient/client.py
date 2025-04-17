@@ -12,12 +12,10 @@ from common.utils.push_notification_auth import PushNotificationReceiverAuth
 
 import asyncio
 from uuid import uuid4
-import urllib
-
 
 async def main():
     try:
-        card_resolver = A2ACardResolver("http://localhost:10000")
+        card_resolver = A2ACardResolver("http://localhost:10008")
         card = card_resolver.get_agent_card()
 
         print("======= Agent Card ========")
