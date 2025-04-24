@@ -58,3 +58,34 @@ vectors = get_embeddings(docs)
   - 自定义向量提取方式
   - 进行领域适应性训练
 - 如果预算充足且追求最好的效果，用大模型的API
+
+---
+
+在实际应用中，搜索时我们通常会：
+- 先接收用户的查询文本
+- 将查询文本转换为向量
+- 用这个向量去搜索
+
+```py
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+query_vector = model.encode(query_text)
+
+res = client.search(
+    collection_name="demo_collection",
+    data=[query_vector],  # 使用转换后的查询向量
+    filter="subject == 'history'",
+    limit=2,
+    output_fields=["text", "subject"],
+)
+```
+
+一致性：
+- 存储时用的encoder和搜索时用的encoder必须一致
+- 创建collection时设置的dimension必须和存储数据时用的encoder的维度一致
+
+如果使用不同的encoder：
+- 即使文本意思相同，生成的向量也会完全不同
+- 向量空间不一致，导致相似度计算失真
+- 搜索结果会变得随机或无意义
