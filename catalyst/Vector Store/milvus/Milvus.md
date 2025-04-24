@@ -23,7 +23,7 @@ database = db.create_database("my_database")
 ## Collection 和 Entity
 Collections 和 Entity 类似于关系数据库中的表和记录。
 
-<img src="./assets/Collection.png" />
+<img src="../assets/Collection.png" />
 
 
 ## reference

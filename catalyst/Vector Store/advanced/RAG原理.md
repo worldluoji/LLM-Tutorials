@@ -1,6 +1,6 @@
 # RAG原理
 
-![RAG示意图](./assets/RAG示意图.png)
+![RAG示意图](../assets/RAG示意图.png)
 
 ## 传统 RAG
 这张图分为两个部分，上半部分讲的是传统的 RAG。
