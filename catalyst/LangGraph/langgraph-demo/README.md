@@ -26,4 +26,4 @@ uv run demo1.py
 
 理解了 demo1.py 的代码，理解 demo2.py 就很容易了。
 
-demo3则掩饰了在各个节点间传递数据，实际就是上个节点return中的内容，会到下个节点的state中。
+demo3则演示了在各个节点间传递数据，实际就是上个节点return中的内容，会到下个节点的state中。
