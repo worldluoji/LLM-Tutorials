@@ -20,12 +20,12 @@ systemMessage = """
 def split_route_handler(message:str)->List[str]:
     codes = message.split('###')
     if len(codes) != 2:
-        raise Exception("Invalid message format")
+        raise Exception("Invalid message format", codes)
     return codes
 
 def route_node(state):
     prompt = """
-    生成 fasitfy 的路由代码和 handler 处理函数，它们之间使用字符串'###'隔开
+    生成 fasitfy 的路由代码和 handler 处理函数代码，它们之间一定要使用字符串'###'隔开
     route_hello:
         GET /hello
     handler_hello:
@@ -44,7 +44,8 @@ def main_node(state):
     2.拥有路由代码
     {routes}
     handler代码已经生成，无需再进行处理
-    3.启动端口为8089
+    3.在8089端口启动服务，不要在别的端口启动
+    4.最后注意检查代码，比如不要出现有多个app.listen的情况
     """
 
     prompt=prompt.format(routes=state["routes"][-1])
