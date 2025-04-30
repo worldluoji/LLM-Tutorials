@@ -72,20 +72,21 @@ const generateVideo = async () => {
       <label>Prompt </label>
       <button @click="generateVideo">Generate</button>
       <textarea class="input" type="text" v-model="prompt" />
-      <input type="text" v-model="imageUrl" />
+      <label>图片地址 </label> <br>
+      <input class="image-url" type="text" v-model="imageUrl" />
     </div>
 
     <div class="output">
       <div v-if="videoUrl">
-        <video controls width="250">
-          <source src="/shared-assets/videos/flower.mp4" type="video/mp4" />
+        <video controls width="500">
+          <source :src="videoUrl" type="video/mp4" />
 
           Download the
-          <a href="/shared-assets/videos/flower.mp4">MP4</a>
+          <a :href="videoUrl">MP4</a>
           video.
         </video>
       </div>
-      <div  v-else>
+      <div v-else>
         {{ msg }}
       </div>
     </div>
@@ -100,6 +101,11 @@ const generateVideo = async () => {
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 0.5rem;
+  margin-top: 6px;
+}
+
+.image-url {
+  width: 300px;
 }
 
 .container {
@@ -117,9 +123,6 @@ const generateVideo = async () => {
   justify-content: center;
   min-height: 200px;
   border: 1px solid #ccc;
-}
-
-.output > img {
-  width: 100%;
+  margin-top: 6px;
 }
 </style>
