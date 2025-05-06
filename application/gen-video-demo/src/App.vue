@@ -17,7 +17,8 @@ const generateVideo = async () => {
     },
     parameters: {
       "resolution": "720P",
-      "prompt_extend": true
+      "prompt_extend": true,
+      "duration": 3
     }
   };
 
