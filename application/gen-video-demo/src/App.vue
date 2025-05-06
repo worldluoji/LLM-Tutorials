@@ -93,10 +93,10 @@
                   >
                   <label
                     :for="`duration${duration}`"
-                    class="block w-full py-3 text-center text-slate-700 bg-white rounded-lg border border-slate-200 cursor-pointer transition-all shadow-sm"
+                    class="block w-full py-3 text-center text-slate-700 rounded-lg border cursor-pointer transition-all shadow-sm"
                     :class="{
                       'border-cyan-400 text-cyan-600 bg-cyan-50': selectedDuration === duration,
-                      'hover:border-cyan-300': selectedDuration !== duration
+                      'bg-white border-slate-200 hover:border-cyan-300': selectedDuration !== duration
                     }"
                   >
                     {{ t(`${duration}s`) }}
