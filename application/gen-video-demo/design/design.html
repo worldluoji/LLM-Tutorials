@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Image to Video Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/lucide-static@0.7.4/font/lucide.css">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-8">
+
+<div class="glass-container bg-white backdrop-blur-lg rounded-2xl shadow-xl p-8 w-full max-w-4xl relative border border-slate-100">
+  
+  <!-- Language Switch -->
+  <div class="absolute top-4 right-4 flex gap-2">
+    <button id="langEn" class="lang-btn px-3 py-1 rounded-md text-sm font-medium bg-cyan-100 text-cyan-600">EN</button>
+    <button id="langZh" class="lang-btn px-3 py-1 rounded-md text-sm font-medium text-slate-500 hover:bg-slate-100">中文</button>
+  </div>
+
+  <!-- Header -->
+  <div class="flex items-center gap-4 mb-8">
+    <img src="https://unpkg.com/lucide-static@0.7.4/icons/video.svg" 
+         class="w-8 h-8 text-cyan-600"
+         onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwODkyOWEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB3aWR0aD0iMjAiIGhlaWdodD0iMTUiIHg9IjIiIHk9IjciIHJ4PSIyIiByeT0iMiIvPjxwYXRoIGQ9Ik0xNyAybDUgNSIvPjxwYXRoIGQ9Ik0yMiAydi0uNSIvPjwvc3ZnPg=='">
+    <h1 id="title" class="text-2xl font-bold text-slate-800" data-i18n="title">
+      Image to Video Generator
+    </h1>
+  </div>
+
+  <!-- Input Grid -->
+  <div class="grid grid-cols-2 gap-8">
+    <!-- Left Column -->
+    <div class="space-y-6">
+      <!-- Image URL Input -->
+      <div class="space-y-2">
+        <label class="flex items-center gap-2 text-sm font-medium text-slate-600" data-i18n="imageUrl">
+          <img src="https://unpkg.com/lucide-static@0.7.4/icons/image.svg" 
+               class="w-5 h-5 text-slate-500"
+               onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2NzM3ODgiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHg9IjMiIHk9IjMiIHJ4PSIyIiByeT0iMiIvPjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMi41Ii8+PHBhdGggZD0iTTIxIDE1bC01LTVMMTAgMTYiLz48L3N2Zz4='">
+          Image URL
+        </label>
+        <input type="url" id="imageUrl" 
+               class="w-full px-4 py-3 bg-slate-50 rounded-lg border border-slate-200 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 text-slate-700 placeholder-slate-400 transition-all"
+               placeholder="https://images.unsplash.com/photo-...">
+      </div>
+
+      <!-- Prompt Textarea -->
+      <div class="space-y-2">
+        <label class="flex items-center gap-2 text-sm font-medium text-slate-600" data-i18n="videoPrompt">
+          <img src="https://unpkg.com/lucide-static@0.7.4/icons/edit-3.svg" 
+               class="w-5 h-5 text-slate-500"
+               onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2NzM3ODgiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIgMjBoOSIvPjxwYXRoIGQ9Ik0xNi41IDMuNWEyLjEyMSAyLjEyMSAwIDAgMSAzIDNMMTAgMjBsLTQgMSAxLTRMMTcuNSA2LjVhMi4xMjEgMi4xMjEgMCAwIDAgMC0zWiIvPjwvc3ZnPg=='">
+          Video Prompt
+        </label>
+        <textarea rows="4" 
+                  class="w-full px-4 py-3 bg-slate-50 rounded-lg border border-slate-200 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 text-slate-700 placeholder-slate-400 resize-none transition-all"
+                  placeholder="Describe the video you want to generate..."></textarea>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="space-y-6">
+      <!-- Duration Selector -->
+      <div class="space-y-2">
+        <label class="flex items-center gap-2 text-sm font-medium text-slate-600" data-i18n="duration">
+          <img src="https://unpkg.com/lucide-static@0.7.4/icons/clock.svg" 
+               class="w-5 h-5 text-slate-500"
+               onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2NzM3ODgiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxwb2x5bGluZSBwb2ludHM9IjEyIDYgMTIgMTIgMTYuNSAxNCIvPjwvc3ZnPg=='">
+          Video Duration
+        </label>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="relative">
+            <input type="radio" name="duration" id="duration3" value="3" class="peer absolute opacity-0">
+            <label for="duration3" 
+                   class="block w-full py-3 text-center text-slate-700 bg-white rounded-lg border border-slate-200 cursor-pointer
+                          peer-checked:border-cyan-400 peer-checked:text-cyan-600 peer-checked:bg-cyan-50
+                          hover:border-cyan-300 transition-all shadow-sm" 
+                   data-i18n="3s">3s</label>
+          </div>
+          <div class="relative">
+            <input type="radio" name="duration" id="duration4" value="4" class="peer absolute opacity-0">
+            <label for="duration4" 
+                   class="block w-full py-3 text-center text-slate-700 bg-white rounded-lg border border-slate-200 cursor-pointer
+                          peer-checked:border-cyan-400 peer-checked:text-cyan-600 peer-checked:bg-cyan-50
+                          hover:border-cyan-300 transition-all shadow-sm" 
+                   data-i18n="4s">4s</label>
+          </div>
+          <div class="relative">
+            <input type="radio" name="duration" id="duration5" value="5" class="peer absolute opacity-0">
+            <label for="duration5" 
+                   class="block w-full py-3 text-center text-slate-700 bg-white rounded-lg border border-slate-200 cursor-pointer
+                          peer-checked:border-cyan-400 peer-checked:text-cyan-600 peer-checked:bg-cyan-50
+                          hover:border-cyan-300 transition-all shadow-sm" 
+                   data-i18n="5s">5s</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Box -->
+      <div id="previewContainer" class="aspect-square bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 overflow-hidden relative">
+        <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center transition-all">
+          <img src="https://unpkg.com/lucide-static@0.7.4/icons/image.svg" 
+               class="w-8 h-8 mx-auto mb-2 opacity-40"
+               onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2NzM3ODgiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHg9IjMiIHk9IjMiIHJ4PSIyIiByeT0iMiIvPjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMi41Ii8+PHBhdGggZD0iTTIxIDE1bC01LTVMMTAgMTYiLz48L3N2Zz4='">
+          <span class="text-sm text-slate-400" data-i18n="preview">Image Preview</span>
+        </div>
+        <img id="previewImage" class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-300">
+        <div id="loadingIndicator" class="absolute inset-0 bg-white/80 hidden items-center justify-center">
+          <svg class="animate-spin h-8 w-8 text-cyan-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate Button -->
+  <button class="w-full mt-8 py-4 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-lg text-white font-semibold hover:from-cyan-600 hover:to-cyan-700 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-cyan-100">
+    <img src="https://unpkg.com/lucide-static@0.7.4/icons/sparkles.svg" 
+         class="w-5 h-5"
+         onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNOS4zMyA2Ljg0YTQgNCAwIDAgMSA1LjM0IDAgNS4zOCA1LjM4IDAgMCAxIDAgNy42MiA0LjQgNC40IDAgMCAxLTEuMTggMi4xMiIgLz48cGF0aCBkPSJNOS4zMyAxNy4xNmE1LjM4IDUuMzggMCAwIDAgNy42MiAwIDQuNCA0LjQgMCAwIDAgMi4xMi0xLjE4IiAvPjxwYXRoIGQ9Ik01IDEyaDE0IiAvPjxwYXRoIGQ9Ik0xMiA1djE0IiAvPjwvc3ZnPg=='">
+    <span data-i18n="generate">Generate Video</span>
+  </button>
+
+</div>
+
+<script>
+  // 国际化配置更新
+  const translations = {
+    'en': {
+      'title': 'Image to Video Generator',
+      'imageUrl': 'Image URL',
+      'videoPrompt': 'Video Prompt',
+      'duration': 'Video Duration',
+      '3s': '3s',
+      '4s': '4s',
+      '5s': '5s',
+      'preview': 'Image Preview',
+      'generate': 'Generate Video',
+      'placeholderImage': 'Paste image URL...',
+      'placeholderPrompt': 'Describe your video...'
+    },
+    'zh': {
+      'title': '图片转视频生成器',
+      'imageUrl': '图片链接',
+      'videoPrompt': '视频描述',
+      'duration': '视频时长',
+      '3s': '3秒',
+      '4s': '4秒',
+      '5s': '5秒',
+      'preview': '图片预览',
+      'generate': '生成视频',
+      'placeholderImage': '粘贴图片链接...',
+      'placeholderPrompt': '输入视频描述...'
+    }
+  };
+
+  // 更新语言切换逻辑
+  function updateLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('lang', lang);
+    
+    // 更新按钮状态
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.remove('bg-cyan-100', 'text-cyan-600');
+      btn.classList.add('text-slate-500', 'hover:bg-slate-100');
+    });
+    document.getElementById(`lang${lang === 'en' ? 'En' : 'Zh'}`)
+      .classList.add('bg-cyan-100', 'text-cyan-600');
+
+    // 更新文本内容
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if(el.tagName !== 'IMG') {
+        el.textContent = translations[currentLang][key];
+      }
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        el.setAttribute('placeholder', translations[currentLang][`placeholder${key}`]);
+      }
+    });
+  }
+</script>
+</body>
+</html>
