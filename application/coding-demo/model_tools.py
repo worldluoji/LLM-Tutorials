@@ -39,7 +39,7 @@ def QdrantVecStore(collection_name:str):
     eb=embeddings
     return  QdrantVectorStore.\
         from_existing_collection(embedding=eb,
-         url="http://<你的Qdrant地址>:6333",
+         url="http://127.0.0.1:6333",
           collection_name=collection_name)
 
 def clearstr(s):
