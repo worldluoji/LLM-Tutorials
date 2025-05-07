@@ -1,6 +1,7 @@
 from langchain_core.tools import tool
 from langchain_qdrant import QdrantVectorStore
-from fastembed import TextEmbedding
+from langchain_community.embeddings import FastEmbedEmbeddings  # 使用 LangChain 适配器
+
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
@@ -34,7 +35,7 @@ def modelsTool(model_name: str):
     return ""
 
 
-embeddings = TextEmbedding(model_name="snowflake/snowflake-arctic-embed-s")
+embeddings = FastEmbedEmbeddings(model_name="snowflake/snowflake-arctic-embed-s")
 def QdrantVecStore(collection_name:str):
     eb=embeddings
     return  QdrantVectorStore.\

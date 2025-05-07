@@ -1,24 +1,27 @@
+import os
+os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'  # 使用镜像站
 from typing import List
 from docx import Document
 from langchain_community.document_loaders import UnstructuredWordDocumentLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from langchain_qdrant import QdrantVectorStore
-from fastembed import TextEmbedding
+# from fastembed import TextEmbedding
+from langchain_community.embeddings import FastEmbedEmbeddings  # 使用 LangChain 适配器
 
 import nltk
 
 # 初始化 FastEmbed
-embeddings = TextEmbedding(model_name="snowflake/snowflake-arctic-embed-s")
+embeddings = FastEmbedEmbeddings(model_name="snowflake/snowflake-arctic-embed-s")
 
 def QdrantVecStoreFromDocs(docs:List[Document]):
     eb=embeddings
     return QdrantVectorStore.from_documents(docs,eb,url="http://127.0.0.1:6333",collection_name="model_data")
 
 def load_doc():
-    nltk.download('punkt_tab')
-    nltk.download('averaged_perceptron_tagger')
-    word=UnstructuredWordDocumentLoader('/Users/luke-surface-mac/code/AI-Drawing-Tutorials/application/coding-demo/data/数据字典.docx')
+    # nltk.download('punkt_tab')
+    # nltk.download('averaged_perceptron_tagger')
+    word=UnstructuredWordDocumentLoader('/Users/luojiayi/code/LLM-Tutorials/application/coding-demo/data/数据字典.docx')
     docs=word.load()
     splitter = RecursiveCharacterTextSplitter(chunk_size=50,
                                               chunk_overlap=20)
