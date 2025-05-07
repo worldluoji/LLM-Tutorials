@@ -2,15 +2,17 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 
-client = QdrantClient(url="http://localhost:6333")
+client = QdrantClient(url="http://127.0.0.1:6333")
 
 collection_name="test_collection"
 
-if not client.collection_exists(collection_name):
-    client.create_collection(
-        collection_name=collection_name,
-        vectors_config=VectorParams(size=4, distance=Distance.DOT),
-    )
+if client.collection_exists(collection_name):
+    client.delete_collection(collection_name)
+
+client.create_collection(
+    collection_name=collection_name,
+    vectors_config=VectorParams(size=4, distance=Distance.COSINE),
+)
 
 
 operation_info = client.upsert(
@@ -30,7 +32,7 @@ print(operation_info)
 
 
 search_result = client.query_points(
-    collection_name="test_collection",
+    collection_name=collection_name,
     query=[0.2, 0.1, 0.9, 0.7],
     with_payload=False,
     limit=3
@@ -40,7 +42,7 @@ print(search_result)
 print("*" * 20)
 
 search_result = client.query_points(
-    collection_name="test_collection",
+    collection_name=collection_name,
     query=[0.2, 0.1, 0.9, 0.7],
     query_filter=Filter(
         must=[FieldCondition(key="city", match=MatchValue(value="London"))]
