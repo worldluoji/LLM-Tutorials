@@ -1,6 +1,6 @@
 ## 演示查询股票历史数据
 
-![接口](./image.png)
+![接口](./assets/image.png)
 
 https://akshare.akfamily.xyz/data/stock/stock.html#id22
 
@@ -16,3 +16,9 @@ https://akshare.akfamily.xyz/data/stock/stock.html#id22
 https://akshare.akfamily.xyz/data/stock/stock.html
 
 -> get_stock_current_info
+
+-> get_stock_pre_build 通过pre build API简化开发流程
+
+https://langchain-ai.github.io/langgraph/tutorials/workflows/#pre-built
+
+![流程图](./assets/agent_graph.png)
