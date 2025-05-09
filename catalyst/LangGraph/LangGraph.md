@@ -15,3 +15,7 @@ LangChainDeprecationWarning: LangChain agents will continue to be supported, but
 ---
 
 ## LangGraph示例
+
+[基础示例](./langgraph-demo/)
+
+[进阶示例](../application/stock-analysis/get-stock-data-demo/get_stock_current_info.py)
