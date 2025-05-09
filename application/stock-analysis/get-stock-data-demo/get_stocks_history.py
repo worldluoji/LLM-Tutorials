@@ -97,6 +97,16 @@ def concat_csv(file_name:str):
     ret.to_csv(f"{FILE_PATH}{os.sep}{file_name}")
     print("合并完成,文件名是{}".format(file_name))
 
+# 合并两个csv文件
+def join_csv(file1:str, file2:str):
+    cols=['股票代码','日期','收盘']
+    df1=load_df(file1).loc[:, cols]
+    df2=load_df(file2).loc[:, cols]
+    df=pd.concat([df1, df2], axis=0)
+    df.sort_values(['股票代码', '日期'], ascending=False, inplace=True)
+    df.drop_duplicates(subset=['股票代码', '日期'], keep='first', inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    print(df)
 
 
 if __name__ == "__main__":
