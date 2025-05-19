@@ -79,3 +79,82 @@ Tile 在中文里是瓷砖的意思，字面理解是将图片切分成棋盘格
 比如后面这张图，输入图像是一张 64x64 分辨率的小狗，使用 Tile 功能配合上“dog on grassland”这个 prompt，可以轻松实现图像的 8 倍超分，得到 512x512 分辨率的效果。
 
 <img src="../images/ControlNet tiles.webp" />
+
+---
+
+## 如何使用ControlletNet
+以下是 Stable Diffusion 中 ControlNet 的使用步骤及核心要点，综合了多个教程的关键操作指南：
+
+---
+
+### 一、**安装与配置**
+1. **插件安装**  
+   - **WebUI 安装**：在 Stable Diffusion WebUI 的 "Extensions" → "Available" 中搜索 `sd-webui-controlnet`，点击 "Install" 并重启。  
+   - **手动安装**：从 GitHub 下载插件 ZIP 文件，解压到 `stable-diffusion-webui/extensions/` 目录后重启。
+
+2. **模型下载与放置**  
+   - 从 HuggingFace 或官方库下载 ControlNet 模型（如 `control_v11p_sd15_canny.pth`），放入路径：  
+     `stable-diffusion-webui/extensions/sd-webui-controlnet/models`。  
+   - 确保模型与基础大模型版本匹配（如 SD1.5 模型对应 SD1.5 的 ControlNet 模型）。
+
+---
+
+### 二、**基础使用流程**
+1. **启用 ControlNet**  
+   - 在文生图/图生图界面底部展开 ControlNet 面板，勾选 "Enable" 启用。  
+   - 低显存设备建议勾选 "Low VRAM" 模式。
+
+2. **上传参考图与参数设置**  
+   - **上传图片**：拖拽或点击上传参考图（如线稿、姿势图或深度图）。  
+   - **选择预处理与模型**：  
+     - **预处理器**：根据需求选择（如 `lineart_anime` 处理动漫线稿，`openpose_full` 提取骨骼）。  
+     - **模型**：与预处理器匹配（如 `control_v11p_sd15_lineart` 对应线稿控制）。  
+   - **关键参数**：  
+     - **控制权重（Weight）**：建议 0.6-1.3，越高则越贴近参考图。  
+     - **预处理分辨率**：默认 512，数值越高线稿越精细。  
+     - **引导时机**：设置 ControlNet 介入和退出的步数（如 0.0-1.0 全程控制）。
+
+3. **生成与调试**  
+   - 输入提示词描述目标画面（如 "1girl, realistic, white dress"）。  
+   - 点击生成后观察效果，若不符合预期：  
+     - 调整权重或更换预处理器。  
+     - 检查模型与预处理器的匹配性（如 `canny` 预处理器需搭配 `canny` 模型）。
+
+---
+
+### 三、**常用场景与技巧**
+1. **线稿上色**  
+   - 上传线稿图 → 选择 `lineart_anime` 预处理 + `control_v11p_sd15_lineart` 模型 → 权重设为 0.6-0.8，避免风格过拟合。
+
+2. **姿势控制**  
+   - 上传人物图 → 选择 `openpose_full` 预处理 + `control_v11p_sd15_openpose` 模型 → 生成相同姿势的新角色。
+
+3. **背景替换**  
+   - 使用 `depth_leres` 预处理提取景深 → 结合提示词生成新背景（如 "park, trees, sunlight"）。
+
+4. **多模型组合**  
+   - 同时启用 2 个 ControlNet 单元：  
+     - **单元 1**：`depth` 控制场景构图。  
+     - **单元 2**：`openpose` 控制人物姿势，权重设为 0.7。
+
+---
+
+### 四、**常见问题解决**
+1. **预处理后图像空白**  
+   - 原因：预处理器与模型不匹配 → 检查并更换对应模型。
+
+2. **生成效果偏离参考图**  
+   - 提高控制权重至 1.3 以上，或降低提示词自由度（减少冲突描述）。
+
+3. **显存不足**  
+   - 启用 "Low VRAM" 模式，或降低预处理分辨率至 384。
+
+---
+
+### 五、**进阶工具推荐**
+- **ComfyUI**：通过节点式工作流实现多 ControlNet 串联，支持更复杂的控制逻辑（如动态调整引导时机）。  
+- **IP-Adapter**：结合参考图风格迁移，提升画面一致性。
+
+---
+
+通过以上步骤，ControlNet 可精准控制图像生成的构图、姿势、风格等要素。建议从单一功能（如线稿上色）入手，逐步尝试多模型组合与参数调优。
