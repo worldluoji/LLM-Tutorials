@@ -27,11 +27,6 @@ image.save("astronaut_rides_horse.png")
 但如果我们希望有良好的界面管理，而且希望联合使用多种能力的话，WebUI 配合 Civitai 或许是你最佳的选择。
 通过界面上的选项，就能选择不同的模型和参数设置，实现定制化的 AI 绘图。
 
-几个推荐模型：
-- ToonYou，可以生成很好看的美漫风格。
-- CounterFeit，可以生成比较精美的漫画形象。
-- 人造人模型，可以生成类似证件照风格的照片效果。
-
 ---
 
 ## Civitai
@@ -41,3 +36,11 @@ image.save("astronaut_rides_horse.png")
 Civitai 下载的 Model 如何使用:
 
 https://github.com/civitai/civitai/wiki/How-to-use-models#fine-tuned-model-checkpoints-dreambooth-models
+
+
+---
+
+## 几个推荐模型
+- ToonYou，可以生成很好看的美漫风格。
+- CounterFeit，可以生成比较精美的漫画形象。
+- 人造人模型，可以生成类似证件照风格的照片效果。
