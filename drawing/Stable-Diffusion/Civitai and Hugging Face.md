@@ -5,7 +5,7 @@ Civitai 和 Hugging Face 是 AI 绘画领域两个非常重要的开源社区。
 这些社区成为了一个宝藏般的资源库，提供了大量且多样的风格模型。
 通过这些社区，人们可以相互交流、分享和发现新的 AI 绘画技巧，不断推动 AI 绘画领域的发展。
 
-<br>
+---
 
 ## Hugging Face
 对于 Hugging Face，你需要先注册官方账号并安装 diffusers 库，这样你就可以使用社区中提供的各种模型。
@@ -32,8 +32,12 @@ image.save("astronaut_rides_horse.png")
 - CounterFeit，可以生成比较精美的漫画形象。
 - 人造人模型，可以生成类似证件照风格的照片效果。
 
-<br>
+---
 
 ## Civitai
 在使用 Civitai 网站时，很重要的一步是找到并且选择适合自己的模型。
 你需要仔细查看模型的类型和使用方式，以确保正确地安装和配置模型，这样 WebUI 才能顺利调用它。
+
+Civitai 下载的 Model 如何使用:
+
+https://github.com/civitai/civitai/wiki/How-to-use-models#fine-tuned-model-checkpoints-dreambooth-models
