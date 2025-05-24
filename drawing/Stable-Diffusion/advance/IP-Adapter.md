@@ -1,3 +1,4 @@
+# IP-Adapter
 IP-Adapter 是由腾讯 AI Lab 开发的轻量级适配器（仅 22M 参数），专为预训练文本到图像扩散模型（如 Stable Diffusion）设计，通过图像提示实现多模态生成控制。以下是其核心解析与应用指南：
 
 ---
@@ -40,7 +41,7 @@ IP-Adapter 是由腾讯 AI Lab 开发的轻量级适配器（仅 22M 参数）�
 
 ### 四、**操作指南（以 WebUI 为例）**
 1. **安装与配置**  
-   - 下载模型：从 [Hugging Face](https://huggingface.co/h94/IP-Adapter) 获取适配器模型（SD1.5/SDXL 版本需匹配基础模型）。  
+   - 下载模型：从 [Civitai](https://civitai.com/models/301776?modelVersionId=338917) 获取适配器模型（SD1.5/SDXL 版本需匹配基础模型）。  
    - 放置路径：SD1.5 模型放入 `extensions/sd-webui-controlnet/models`，SDXL 模型放入 `models/ControlNet`。
 
 2. **参数设置黄金法则**  
