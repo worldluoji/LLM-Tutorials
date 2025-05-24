@@ -82,3 +82,70 @@
   - **多模态工作流**：新增音频-图像联合生成节点，可根据音乐节奏生成动态视觉。
 
 IP-Adapter 通过解耦式架构和轻量化设计，已成为 AI 创作领域的核心工具之一。其与 ControlNet、LoRA 的协同使用，正在重新定义图像生成的可控边界。
+
+---
+
+## 在Stable Diffusion WebUI中安装IP-Adapter
+在Stable Diffusion WebUI中安装IP-Adapter需要结合ControlNet插件实现，以下是具体步骤及注意事项：
+
+### 一、环境准备
+1. **更新ControlNet插件**  
+   确保已安装最新版ControlNet插件（v1.1.4及以上），可通过WebUI的“扩展”页面直接更新，或手动替换插件目录。
+   - 插件地址：`https://github.com/Mikubill/sd-webui-controlnet`
+
+2. **安装Python依赖**  
+   IP-Adapter依赖`insightface`库，需在命令行执行：
+   ```bash
+   pip install insightface -U
+   ```
+   若使用ComfyUI等其他分支，可能需额外安装`onnxruntime`（执行`pip install onnxruntime`）。
+
+---
+
+### 二、模型与文件配置
+1. **下载IP-Adapter模型文件**  
+   - 主模型：从HuggingFace下载`ip-adapter-faceid-plusv2_sd15.safetensors`（适用于SD1.5）或`ip-adapter-faceid-plusv2_sdxl.safetensors`（适用于SDXL）。
+   - 辅助模型：需下载`CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors`和`CLIP-ViT-bigG-14-laion2B-39B-b160k.safetensors`，放置于`stable-diffusion-webui/models/clip_vision/`目录。
+
+2. **文件放置路径**  
+   - 主模型存放路径：`stable-diffusion-webui/extensions/sd-webui-controlnet/models/`  
+   - 若使用SDXL，需额外加载对应LoRA（权重建议0.5-0.7）。
+
+---
+
+### 三、WebUI配置步骤
+1. **启用ControlNet单元**  
+   在“文生图”页面底部展开ControlNet面板，上传参考图后：
+   - **预处理器**：选择`ip-adapter_face_id_plus`  
+   - **模型**：选择已下载的IP-Adapter模型（如`ip-adapter-faceid-plusv2_sd15`）  
+   - **控制权重**：建议0.8-1.0，过高可能导致过度拟真。
+
+2. **提示词优化**  
+   在正向提示词中调用LoRA增强面部一致性：
+   ```
+   lora:ip-adapter-faceid-plusv2_sd15_lora:0.8
+   ```
+   搭配摄影风格模型（如`RealisticVision`）效果更佳。
+
+---
+
+### 四、常见问题解决
+1. **报错“Unable to import onnxruntime”**  
+   执行`pip install onnxruntime`或`pip install onnxruntime-gpu`（NVIDIA显卡）。
+
+2. **面部特征不一致**  
+   - 检查参考图是否仅包含单一人脸（IP-Adapter默认提取第一张人脸）  
+   - 调整ControlNet权重和LoRA强度，避免数值过高导致变形。
+
+3. **生成图片模糊**  
+   使用Tiled Diffusion插件提升分辨率，或通过“图生图”进行高清修复。
+
+---
+
+### 五、进阶应用
+- **多ControlNet组合**：可同时启用IP-Adapter（风格控制）+ OpenPose（姿势控制）+ Depth（构图控制）实现精准生成。
+- **商业写真流程**：  
+  1. 使用`ADetailer`插件自动修复面部和手部细节  
+  2. 搭配`SDXL Detail`等LoRA增强皮肤纹理。
+
+> **资源下载**：IP-Adapter模型及依赖文件可通过[HuggingFace](https://huggingface.co/h94/IP-Adapter-FaceID)或公众号“萤火遛AI”回复“AI写真”获取完整包。
