@@ -1,5 +1,5 @@
 # IP-Adapter
-IP-Adapter 是由腾讯 AI Lab 开发的轻量级适配器（仅 22M 参数），专为预训练文本到图像扩散模型（如 Stable Diffusion）设计，通过图像提示实现多模态生成控制。以下是其核心解析与应用指南：
+[IP-Adapter](https://github.com/tencent-ailab/IP-Adapter) 是由腾讯 AI Lab 开发的轻量级适配器（仅 22M 参数），专为预训练文本到图像扩散模型（如 Stable Diffusion）设计，通过图像提示实现多模态生成控制。以下是其核心解析与应用指南：
 
 ---
 
