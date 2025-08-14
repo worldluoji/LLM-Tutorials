@@ -1,0 +1,11 @@
+[project]
+name = "server"
+version = "0.1.0"
+description = "Resource discovery server"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "faiss-cpu>=1.10.0",
+    "mcp[cli]>=1.6.0",
+    "openai>=1.75.0",
+]
