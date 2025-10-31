@@ -36,6 +36,11 @@ logger = logging.getLogger(__name__)
 
 
 class AgentTaskManager(InMemoryTaskManager):
+
+    '''
+    接收 AgentAdapter 实例用于实际的任务执行
+    接收 PushNotificationSenderAuth 实例用于推送通知认证
+    '''
     def __init__(self, agent: AgentAdapter, notification_sender_auth: PushNotificationSenderAuth):
         super().__init__()
         self.agent = agent
@@ -97,6 +102,11 @@ class AgentTaskManager(InMemoryTaskManager):
                 InternalError(message=f"An error occurred while streaming the response: {e}")                
             )
 
+
+    '''
+    验证输出模式是否兼容
+    检查推送通知URL是否存在
+    '''
     def _validate_request(
         self, request: Union[SendTaskRequest, SendTaskStreamingRequest]
     ) -> JSONRPCResponse | None:
@@ -116,7 +126,13 @@ class AgentTaskManager(InMemoryTaskManager):
             return JSONRPCResponse(id=request.id, error=InvalidParamsError(message="Push notification URL is missing"))
         
         return None
-        
+
+
+    """
+    处理单次请求-响应式的任务
+    调用 Agent 执行并返回结果
+    更新任务状态和历史记录
+    """   
     async def on_send_task(self, request: SendTaskRequest) -> SendTaskResponse:
         """Handles the 'send task' request."""
         validation_error = self._validate_request(request)
@@ -144,6 +160,12 @@ class AgentTaskManager(InMemoryTaskManager):
             request, agent_response
         )
 
+
+    '''
+    处理流式任务，支持逐步返回结果
+    使用 Server-Sent Events (SSE) 技术实现实时通信
+    可以处理中间状态更新和最终结果
+    '''
     async def on_send_task_subscribe(
         self, request: SendTaskStreamingRequest
     ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse:
