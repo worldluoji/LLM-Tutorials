@@ -53,6 +53,11 @@ def main(host, port):
             skills=[skill1, skill2],
         )
 
+        '''
+        PushNotificationSenderAuth的作用：
+        生成签署通知所需的加密密钥：generate_jwk
+        处理JWKS（JSON Web Key Set）端点，客户端将使用该端点来验证通知签名
+        '''
         notification_sender_auth = PushNotificationSenderAuth()
         notification_sender_auth.generate_jwk()
         server = A2AServer(
