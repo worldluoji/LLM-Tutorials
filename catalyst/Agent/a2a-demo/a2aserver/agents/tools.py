@@ -41,7 +41,7 @@ def get_score_by_name(name):
     
 def generating_performance_reviews(estimation):
     completion = client.chat.completions.create(
-        model="deepseek-r1",
+        model="deepseek-chat",
         messages=[
             {'role': 'system', 'content': '你是一个公司的领导，请根据我给你的员工的简单评价，生成一段50字左右的评语'},
             {'role': 'user', 'content': estimation},
