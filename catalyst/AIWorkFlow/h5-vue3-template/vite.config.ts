@@ -1,9 +1,10 @@
 import vue from '@vitejs/plugin-vue'
 import { VantResolver } from 'unplugin-vue-components/resolvers'
 import Components from 'unplugin-vue-components/vite'
-import { defineConfig } from 'vite'
+import { defineConfig, PluginOption } from 'vite'
 import autoprefixer from 'autoprefixer'
 import postcssNested from 'postcss-nested'
+import legacy from '@vitejs/plugin-legacy' // vite5 只能兼容到legacy 4.x
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -12,14 +13,15 @@ export default defineConfig({
      Components({
       resolvers: [VantResolver()],
     }),
+    legacy({
+      targets: ['last 2 versions', '> 0.2%', 'not dead', 'not IE 11'],
+    }) as PluginOption[]
   ],
   css: {
-    // 进行 PostCSS 配置
     postcss: {
       plugins: [
         autoprefixer({
-          // 指定目标浏览器
-          overrideBrowserslist: ['Chrome > 40', 'ff > 31', 'ie 11']
+          overrideBrowserslist: ['last 2 versions', '> 0.2%', 'not dead', 'not IE 11']
         }),
         postcssNested()
       ]
