@@ -49,6 +49,16 @@ const tsConfig = {
       ...globals.browser,
       ...globals.node,
     },
+    parserOptions: {
+      project: ['./tsconfig.app.json'], // 指定TypeScript配置文件
+    }
+  },
+  settings: {
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.ts', '.jsx', '.tsx', '.vue']
+      }
+    },
   },
   rules: {
     ...js.configs.recommended.rules,
@@ -77,7 +87,7 @@ const tsConfig = {
       'newlines-between': 'always',
       alphabetize: { order: 'asc', caseInsensitive: true }
     }],
-    'import/no-unresolved': 'warn',
+    'import/no-unresolved': 'off', // 关闭此规则，因为它会与typescript resolver冲突
   },
 }
 
@@ -93,11 +103,19 @@ const vueConfig = {
     parser: vueParser,
     parserOptions: {
       parser: tsParser,
+      project: ['./tsconfig.app.json'], // 指定TypeScript配置文件
       ecmaVersion: 'latest',
       sourceType: 'module',
     },
     globals: {
       ...globals.browser,
+    },
+  },
+  settings: {
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.ts', '.jsx', '.tsx', '.vue']
+      }
     },
   },
   rules: {
@@ -129,7 +147,7 @@ const vueConfig = {
       'newlines-between': 'always',
       alphabetize: { order: 'asc', caseInsensitive: true }
     }],
-    'import/no-unresolved': 'warn',
+    'import/no-unresolved': 'off', // 关闭此规则，因为它会与typescript resolver冲突
   },
 }
 

@@ -14,6 +14,12 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "preserve",
+    
+    /* 路径映射 */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
 
     /* Linting */
     "strict": true,
