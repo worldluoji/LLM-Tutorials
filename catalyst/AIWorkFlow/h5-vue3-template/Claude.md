@@ -14,6 +14,8 @@
 ## 1. 技术栈与环境
 - **语言**: Vue3.5.12、TypeScript、HTML、CSS
 - **前端组件库**: Vant4
+- **接口调用**: 使用TanStack Query 
+- **状态管理**: 使用TanStack Store
 - **Node.JS 版本**: >= 20.0.0
 - **构建、运行与单元测试**:
   - 使用 `vite` 作为构建工具。 
