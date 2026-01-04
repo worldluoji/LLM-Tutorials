@@ -1,3 +1,4 @@
+import { VueQueryPlugin } from '@tanstack/vue-query'
 import { createApp } from 'vue'
 
 import './style.css'
@@ -8,5 +9,6 @@ const app = createApp(App)
 
 // Register router
 registerRouter(app)
+app.use(VueQueryPlugin)
 
 app.mount('#app')
