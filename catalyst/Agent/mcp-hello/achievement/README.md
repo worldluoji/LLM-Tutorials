@@ -1,4 +1,6 @@
 # MCP Server Python Demo
+Roo Code 充当了MCP Hosts的角色。
+
 ## 启动
 
 当前目录下启动：
@@ -7,6 +9,18 @@ uv run mcp dev main.py # 5173端口会启动一个服务，可浏览器访问该
 
 uv run mcp run main.py
 ```
+
+### mcp run vs mcp dev 的区别
+uv run mcp run main.py：
+- 直接启动MCP服务器
+- 服务器通过stdio（标准输入/输出）与客户端通信
+- 适用于生产或直接使用场景
+- uv run mcp dev main.py：
+
+### 启动开发模式的MCP服务器
+- 通常会在特定端口（如5173）启动一个HTTP服务
+- 提供浏览器调试界面
+- 主要用于开发和调试
 
 在外部启动：
 ```bash
@@ -52,6 +66,29 @@ def get_score_by_name(name):
 使用 Low-Level SDK，写法会与上面的代码类似，也是要分开。但是使用 FastMCP，就可以写在一起，把工具的描述以字符串的形式写在函数的开头。
 
 ## Roo Code 配置
+```json
+{
+  "mcpServers": {
+    "achievement": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--with",
+        "mcp[cli]",
+        "--with-editable",
+        "/Users/luke-surface-mac/code/LLM-Tutorials/catalyst/Agent/mcp-hello/achievement",
+        "mcp",
+        "run",
+        "/Users/luke-surface-mac/code/LLM-Tutorials/catalyst/Agent/mcp-hello/achievement/main.py"
+      ]
+    }
+  }
+}
+```
+这样在Roo Code中问张三和李四谁的绩效成绩更好，就会用到我们的开发的这个简单的MCP Server。
+
+
+如果是调试，也可以用开发模式启动MCP Server, 在Roo Code中配置：
 ```json
 {
   "mcpServers": {

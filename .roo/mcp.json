@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "achievement": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--with",
+        "mcp[cli]",
+        "--with-editable",
+        "/Users/luke-surface-mac/code/LLM-Tutorials/catalyst/Agent/mcp-hello/achievement",
+        "mcp",
+        "run",
+        "/Users/luke-surface-mac/code/LLM-Tutorials/catalyst/Agent/mcp-hello/achievement/main.py"
+      ]
+    }
+  }
+}
