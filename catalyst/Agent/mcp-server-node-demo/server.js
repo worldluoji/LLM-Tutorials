@@ -1,4 +1,6 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+// import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+// Optimized usage with McpServer
+import { McpServer } from '@modelcontextprotocol/sdk';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
@@ -8,7 +10,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 // 创建 MCP 服务器
-const server = new Server(
+const server = new McpServer(
   {
     name: 'example-mcp-server',
     version: '1.0.0',
