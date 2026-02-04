@@ -12,6 +12,13 @@
         "run",
         "/Users/luke-surface-mac/code/LLM-Tutorials/catalyst/Agent/mcp-hello/achievement/main.py"
       ]
+    },
+    "node-demo-server": {
+      "command": "node",
+      "args": ["/Users/luke-surface-mac/code/LLM-Tutorials/catalyst/Agent/mcp-server-node-demo/server.js"],
+      "env": {
+        "NODE_ENV": "production"
+      }
     }
   }
 }
