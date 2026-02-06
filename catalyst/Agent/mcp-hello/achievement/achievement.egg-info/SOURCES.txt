@@ -1,8 +1,0 @@
-README.md
-main.py
-pyproject.toml
-achievement.egg-info/PKG-INFO
-achievement.egg-info/SOURCES.txt
-achievement.egg-info/dependency_links.txt
-achievement.egg-info/requires.txt
-achievement.egg-info/top_level.txt

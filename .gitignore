@@ -3,3 +3,4 @@
 index_tyxs.json
 *.pyc
 milvus_demo.db
+*.egg-info/
