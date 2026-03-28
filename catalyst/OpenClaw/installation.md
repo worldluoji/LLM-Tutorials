@@ -6,6 +6,10 @@
 
 OpenClaw 推荐使用官方一键安装脚本，整个过程约需 5 分钟。
 
+也可以使用国内大厂提供的封装后的产品，比如qclaw: https://qclaw.qq.com/
+
+直接就能对接微信。使用qclaw后main的内容可以不看，直接下载安装即可。
+
 ### 1. 环境准备
 - **Node.js 22+**：运行 `node -v` 检查版本，低于 22 需升级
 - **操作系统**：macOS、Linux 或 Windows 11（Windows 建议使用 WSL2）
