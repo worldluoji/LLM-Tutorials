@@ -1,0 +1,7 @@
+.claude/settings.local.json
+.vscode/
+.idea/
+*.DS_Store
+/node-tiny-claw # 忽略构建产物（假设与目录同名）
+node_modules
+dist

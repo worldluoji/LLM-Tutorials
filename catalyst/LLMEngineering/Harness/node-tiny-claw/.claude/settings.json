@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "defaultMode": "plan",
+    "allow": [
+      "Read(*.ts)",
+      "Read(*.js)",
+      "Read(package.json)",
+      "Read(package-lock.json)",
+      "Read(README.md)",
+      "Read(constitution.md)",
+      "Read(specs/**)",
+      "Grep",
+      "Glob",
+      "LS",
+      "Bash(node:--version)",
+      "Bash(npm:info:*)",
+      "Bash(pnpm:test)",
+      "Bash(pnpm:lint)"
+    ],
+    "ask": [
+      "Write",
+      "Edit",
+      "MultiEdit",
+      "Bash(pnpm:dev)",
+      "Bash(pnpm:build)",
+      "Bash(git:add:*)",
+      "Bash(git:commit:*)"
+    ],
+    "deny": [
+      "Read(./.env*)",
+      "Read(*.pem)",
+      "Read(*.key)",
+      "Bash(rm:*)",
+      "Bash(git:push:*)",
+      "WebFetch"
+    ]
+  }
+}
