@@ -3,5 +3,11 @@
 
 ---
 
-## 1. Continue
+## 1. OpenCode
+https://opencode.doczh.com/docs/
+
+---
+
+## 2. Continue
 https://docs.continue.dev/cli/quickstart
+
