@@ -12,10 +12,11 @@
 
 ---
 ## 1. 技术栈与环境
-- **语言**: Node.js (版本 >= 22)
+- **语言**: Node.js (版本 >= 22)、typescript
 - **构建与测试**:
   - 运行所有测试: `pnpm test`
   - 构建服务: `pnpm build`
+  - 本地运行: `pnpm start`
 
 ---
 ## 2. Git与版本控制
