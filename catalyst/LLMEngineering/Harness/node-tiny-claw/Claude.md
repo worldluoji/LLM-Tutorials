@@ -18,6 +18,7 @@
   - 构建服务: `pnpm build`
   - 本地运行: `pnpm start`
   - 格式化: `pnpm format`
+  - 语法检查: `pnpm lint`
 
 ---
 ## 2. Git与版本控制
