@@ -17,6 +17,7 @@
   - 运行所有测试: `pnpm test`
   - 构建服务: `pnpm build`
   - 本地运行: `pnpm start`
+  - 格式化: `pnpm format`
 
 ---
 ## 2. Git与版本控制

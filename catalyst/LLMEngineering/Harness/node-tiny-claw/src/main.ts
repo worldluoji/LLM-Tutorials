@@ -1,1 +1,1 @@
-console.log("Hello from node-tiny-claw!");
+console.log('Hello from node-tiny-claw!');
