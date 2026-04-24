@@ -37,7 +37,7 @@ export class AgentEngine {
       {
         role: Role.System,
         content:
-          'You are go-tiny-claw, an expert coding assistant. You have full access to tools in the workspace.',
+          'You are node-tiny-claw, an expert coding assistant. You have full access to tools in the workspace.',
       },
       {
         role: Role.User,
