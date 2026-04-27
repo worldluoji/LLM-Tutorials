@@ -13,7 +13,7 @@ export class MiniMaxProvider implements LLMProvider {
   private baseURL: string;
   private model: string;
 
-  constructor(model: string = 'MiniMax-Text-01') {
+  constructor(model: string = 'MiniMax-M2.7') {
     this.apiKey = process.env.MINIMAX_API_KEY || '';
     if (!this.apiKey) {
       throw new Error('请设置 MINIMAX_API_KEY 环境变量');
