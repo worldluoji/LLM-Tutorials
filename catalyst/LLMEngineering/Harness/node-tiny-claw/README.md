@@ -10,3 +10,11 @@
   - c. 运行时事件提醒注入：是防走神的利器，在模型做决定的前一刻注入干预指令。
 - 基于文件系统的状态与记忆则是极简哲学的核心——抛弃内部变量，直接把进度写在本地 TODO.md 里。
 - 工具与执行层（四肢与手脚）：挂载了让模型改变物理世界的组件。动态的 ToolRegistry 配合极简工具集（read/write/edit/bash），让模型组合出无限可能。强大的 Middleware 机制则死死把守大门，拦截危险命令并对接审批。
+
+---
+
+## script
+检查 MiniMax 是否可以用：
+```bash
+MINIMAX_API_KEY=$MINIMAX_API_KEY pnpm test:minimax
+```

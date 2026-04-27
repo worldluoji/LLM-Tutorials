@@ -15,7 +15,9 @@
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:minimax": "tsx test/llm/test.minimax-provider.ts"
+    "test:minimax": "tsx test/llm/test.minimax-provider.ts",
+    "test:read-file": "tsx test/tools/test.read-file.ts",
+    "test:read-file-tool": "tsx test/tools/test.read-file-tool.ts"
   },
   "keywords": [],
   "author": "",
