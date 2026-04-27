@@ -44,6 +44,7 @@ export class MiniMaxProvider implements LLMProvider {
     }
 
     logger.info(`[MiniMax] 发送请求到 ${this.baseURL}/chat/completions`);
+    logger.debug(`[MiniMax] 请求体: ${JSON.stringify(requestBody, null, 2)}`);
 
     // 4. 发送请求
     const controller = new AbortController();
@@ -87,6 +88,8 @@ export class MiniMaxProvider implements LLMProvider {
       }>;
     };
 
+    logger.debug(`[MiniMax] 响应体: ${JSON.stringify(data, null, 2)}`);
+
     // 5. 反向解析：将 MiniMax 响应转换为内部 Message
     return this.parseResponse(data);
   }
@@ -102,9 +105,10 @@ export class MiniMaxProvider implements LLMProvider {
         }
         case Role.User: {
           if (msg.tool_call_id) {
+            // MiniMax API 要求工具结果消息使用 tool role
             result.push({
-              role: 'user',
-              content: msg.content,
+              role: 'tool',
+              content: msg.content || '',
               tool_call_id: msg.tool_call_id,
             });
           } else {
