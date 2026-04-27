@@ -18,23 +18,34 @@ import { logger } from '../../src/utils/logger.ts';
 // 1. 伪造的大模型 Provider（实现 provider 接口）
 // ==========================================
 class MockProvider implements LLMProvider {
-  private turn = 0;
+  private callCount = 0;
 
   // 必须与内部 provider 定义的 generate 方法签名一致
   async generate(
     _msgs: Message[],
-    _availableTools: ToolDefinition[],
+    availableTools: ToolDefinition[],
     _signal?: AbortSignal
   ): Promise<Message> {
-    this.turn++;
+    this.callCount++;
 
-    if (this.turn === 1) {
+    // Phase 1 (Thinking): 无工具，强制思考
+    if (availableTools.length === 0) {
+      return {
+        role: Role.Assistant,
+        content: '让我先思考一下这个问题。我需要先查看当前目录下有什么文件，了解项目结构后再决定下一步行动。',
+      } as Message;
+    }
+
+    // Phase 2 (Action): 有工具，恢复行动
+    // 第一次 Action 调用返回工具调用，第二次返回最终回复
+    if (this.callCount === 2) {
+      // 这是思考后的第一次 Action
       return {
         role: Role.Assistant,
         content: '让我来看看当前目录下有什么文件。',
         tool_calls: [
           {
-            id: 'call_123',
+            id: 'call_1',
             name: 'bash',
             arguments: { command: 'ls -la' },
           },
@@ -54,7 +65,20 @@ class MockProvider implements LLMProvider {
 // ==========================================
 class MockRegistry {
   getAvailableTools(): ToolDefinition[] {
-    return [];
+    // 返回一个模拟的工具定义
+    return [
+      {
+        name: 'bash',
+        description: 'Execute a bash command',
+        input_schema: {
+          type: 'object',
+          properties: {
+            command: { type: 'string', description: 'The bash command to execute' },
+          },
+          required: ['command'],
+        },
+      },
+    ] as ToolDefinition[];
   }
 
   async execute(call: ToolCall, _signal?: AbortSignal): Promise<ToolResult> {
@@ -72,11 +96,12 @@ class MockRegistry {
 async function runTest() {
   const workDir = process.cwd();
 
-  // 直接实例化项目中的 AgentEngine，传入 Mock 实现
+  // 直接实例化项目中的 AgentEngine，传入 Mock 实现，启用慢思考模式
   const engine = new AgentEngine(
     new MockProvider(),
     new MockRegistry(),
-    workDir
+    workDir,
+    true // 启用 Two-Stage ReAct 慢思考模式
   );
 
   try {
