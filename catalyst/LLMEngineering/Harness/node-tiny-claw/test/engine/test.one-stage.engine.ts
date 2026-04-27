@@ -52,6 +52,8 @@ class MockProvider implements LLMProvider {
 // ==========================================
 // 2. 伪造的 Tool Registry（实现 tools 包定义的接口）
 // ==========================================
+import { BaseTool } from '../../src/tools/registry.ts';
+
 class MockRegistry {
   getAvailableTools(): ToolDefinition[] {
     return [];
@@ -63,6 +65,10 @@ class MockRegistry {
       output: '-rw-r--r--  1 user group  234 Oct 24 10:00 test.engine.ts\n',
       is_error: false,
     } as ToolResult;
+  }
+
+  register(_tool: BaseTool): void {
+    // Mock implementation: do nothing
   }
 }
 
