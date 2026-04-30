@@ -12,26 +12,31 @@
       "Grep",
       "Glob",
       "LS",
-      "Bash(node:--version)",
-      "Bash(npm:info:*)",
-      "Bash(pnpm:test)",
-      "Bash(pnpm:lint)"
+      "Bash(node --version)",
+      "Bash(npm info:*)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm commit:*)",
+      "Bash(pnpm auto-commit:*)"
     ],
     "ask": [
       "Write",
       "Edit",
       "MultiEdit",
-      "Bash(pnpm:dev)",
-      "Bash(pnpm:build)",
-      "Bash(git:add:*)",
-      "Bash(git:commit:*)"
+      "Bash(git:push:*)"
     ],
     "deny": [
       "Read(./.env*)",
       "Read(*.pem)",
       "Read(*.key)",
       "Bash(rm:*)",
-      "Bash(git:push:*)",
       "WebFetch"
     ]
   }
