@@ -15,7 +15,8 @@
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
     "test": "tsx scripts/run-test.ts",
-    "test:minimax": "tsx scripts/run-test.ts --minimax"
+    "test:minimax": "tsx scripts/run-test.ts --minimax",
+    "commit": "tsx scripts/auto-commit.ts"
   },
   "keywords": [],
   "author": "",

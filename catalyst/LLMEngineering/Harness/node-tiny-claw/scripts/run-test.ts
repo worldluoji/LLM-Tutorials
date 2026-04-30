@@ -47,6 +47,16 @@ const testConfigs: TestConfig[] = [
     description: 'ReadFileTool 集成测试（需要 MiniMax）',
     requireEnv: ['MINIMAX_API_KEY'],
   },
+  {
+    name: 'bash',
+    command: 'tsx test/tools/test.bash.ts',
+    description: 'BashTool 单元测试',
+  },
+  {
+    name: 'write-file',
+    command: 'tsx test/tools/test.write-file.ts',
+    description: 'WriteFileTool 单元测试',
+  },
 ];
 
 // 检查环境变量
