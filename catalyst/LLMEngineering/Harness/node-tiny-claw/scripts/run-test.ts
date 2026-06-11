@@ -57,6 +57,11 @@ const testConfigs: TestConfig[] = [
     command: 'tsx test/tools/test.write-file.ts',
     description: 'WriteFileTool 单元测试',
   },
+  {
+    name: 'edit-file',
+    command: 'tsx test/tools/test.edit-file.ts',
+    description: 'EditFileTool 单元测试',
+  },
 ];
 
 // 检查环境变量
