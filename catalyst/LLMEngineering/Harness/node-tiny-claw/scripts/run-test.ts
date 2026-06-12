@@ -62,6 +62,11 @@ const testConfigs: TestConfig[] = [
     command: 'tsx test/tools/test.edit-file.ts',
     description: 'EditFileTool 单元测试',
   },
+  {
+    name: 'parallel-dispatch',
+    command: 'tsx test/engine/test.parallel-dispatch.engine.ts',
+    description: 'AgentEngine 并行工具分发表格驱动测试',
+  },
 ];
 
 // 检查环境变量

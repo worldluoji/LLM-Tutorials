@@ -131,26 +131,45 @@ export class AgentEngine {
         break;
       }
 
-      logger.info(`模型请求调用 ${actionResp.tool_calls.length} 个工具...`);
+      logger.info(`模型请求调用 ${actionResp.tool_calls.length} 个工具（并行 Fork-Join）...`);
 
-      for (const toolCall of actionResp.tool_calls) {
-        logger.info(`  -> 🛠️ 执行工具: ${toolCall.name}, 参数: ${JSON.stringify(toolCall.arguments)}`);
+      // Fork: 一次性把所有工具调用挂到事件循环上并发推进。
+      // 上一章的"独立性假设"在此兑现 —— 同一 Turn 内的 tool_calls 视为互相独立，无脑并行。
+      const settled = await Promise.allSettled(
+        actionResp.tool_calls.map((tc) => {
+          logger.info(`  -> 🛠️ 派发: ${tc.name}, 参数: ${JSON.stringify(tc.arguments)}`);
+          return this.registry.execute(tc, signal);
+        })
+      );
 
-        // 通过 Registry 路由并执行底层工具
-        const result = await Promise.resolve(
-          this.registry.execute(toolCall, signal)
-        );
+      // Join: 按原索引回填 observation。
+      // - Promise.allSettled 的结果数组与输入数组索引严格对齐，与"哪个先完成"无关。
+      // - 按 tool_calls 原序 push，保证 contextHistory 中 tool_call_id 顺序与模型期望一致。
+      // - 使用 allSettled 而非 all：失败原样回传给模型，由其在下一轮自纠错（YOLO 哲学）。
+      for (let i = 0; i < actionResp.tool_calls.length; i++) {
+        const toolCall = actionResp.tool_calls[i];
+        const s = settled[i];
 
-        if (result.is_error) {
-          logger.error(`  -> ❌ 工具执行报错: ${result.output}`);
+        let output: string;
+        let isError: boolean;
+        if (s.status === 'fulfilled') {
+          output = s.value.output;
+          isError = s.value.is_error;
         } else {
-          logger.info(`  -> ✅ 工具执行成功 (返回 ${result.output.length} 字节)`);
+          // registry.execute 自身 reject（罕见：通常工具异常已被 RegistryImpl 包装为 is_error:true）
+          output = `Tool execution rejected: ${s.reason instanceof Error ? s.reason.message : String(s.reason)}`;
+          isError = true;
         }
 
-        // 将工具执行的观察结果 (Observation) 追加到 Context，准备进入下一轮
+        if (isError) {
+          logger.error(`  -> ❌ [${toolCall.name}] 报错: ${output}`);
+        } else {
+          logger.info(`  -> ✅ [${toolCall.name}] 成功 (返回 ${output.length} 字节)`);
+        }
+
         const observationMsg: Message = {
           role: Role.User,
-          content: result.output,
+          content: output,
           tool_call_id: toolCall.id,
         };
         contextHistory.push(observationMsg);
