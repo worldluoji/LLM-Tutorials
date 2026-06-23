@@ -20,7 +20,7 @@ interface TestCase {
 const testCases: TestCase[] = [
   {
     name: '简单对话 - 模型回复纯文本',
-    model: process.env.MINIMAX_MODEL || 'MiniMax-M2.7',
+    model: process.env.MINIMAX_MODEL || 'MiniMax-M3',
     messages: [
       { role: Role.System, content: '你是一个友好的助手。' },
       { role: Role.User, content: '你好，请介绍一下你自己。' },
@@ -30,7 +30,7 @@ const testCases: TestCase[] = [
   },
   {
     name: '工具调用场景 - 请求列出目录文件',
-    model: process.env.MINIMAX_MODEL || 'MiniMax-M2.7',
+    model: process.env.MINIMAX_MODEL || 'MiniMax-M3',
     messages: [
       {
         role: Role.System,
@@ -46,7 +46,7 @@ const testCases: TestCase[] = [
   },
   {
     name: '多轮对话上下文',
-    model: process.env.MINIMAX_MODEL || 'MiniMax-M2.7',
+    model: process.env.MINIMAX_MODEL || 'MiniMax-M3',
     messages: [
       { role: Role.System, content: '你是一个乐于助人的助手。' },
       { role: Role.User, content: '北京是哪个国家的首都？' },

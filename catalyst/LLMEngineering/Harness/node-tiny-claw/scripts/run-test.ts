@@ -82,6 +82,16 @@ const testConfigs: TestConfig[] = [
     command: 'tsx test/engine/test.composer-integration.engine.ts',
     description: 'PromptComposer 集成到 Main Loop 的端到端测试',
   },
+  {
+    name: 'terminal-reporter',
+    command: 'tsx test/engine/test.terminal-reporter.engine.ts',
+    description: 'TerminalReporter 单元测试',
+  },
+  {
+    name: 'parse-text-tool-calls',
+    command: 'tsx test/llm/test.parse-text-tool-calls.ts',
+    description: 'parseTextToolCalls 纯函数单元测试',
+  },
 ];
 
 // 检查环境变量

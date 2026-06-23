@@ -5,9 +5,13 @@ import { Registry } from '../tools/registry.js';
 import { Message, Role, ToolCall } from '../schema/message.ts';
 import { logger } from '../utils/logger.ts';
 import { PromptComposer } from '../context/composer.ts';
+import { Reporter } from './terminal_reporter.ts';
 
 // Use the global AbortSignal type if available (Node.js >= 15 or browsers)
 type AbortSignal = globalThis.AbortSignal;
+
+/** Main Loop 最大轮数：超出后强制退出，避免模型死循环把任务跑到分钟级 */
+const MAX_TURNS = 50;
 
 /**
  * AgentEngine 是微型 OS 的核心驱动
@@ -36,8 +40,17 @@ export class AgentEngine {
    * 启动 Agent 的生命周期
    * @param userPrompt - 用户输入的初始提示词
    * @param signal - 可选的取消信号，用于中断整个运行循环
+   * @param reporter - 把 Agent 状态反馈给用户的渠道；缺省时静默 no-op（保持向后兼容）
    */
-  async run(userPrompt: string, signal?: AbortSignal): Promise<void> {
+  async run(userPrompt: string, signal?: AbortSignal, reporter?: Reporter): Promise<void> {
+    /** 静默 no-op reporter：保证 reporter 缺省时也不会 NPE */
+    const r: Reporter = reporter ?? {
+      onThinking: () => {},
+      onToolCall: () => {},
+      onToolResult: () => {},
+      onMessage: () => {},
+    };
+
     logger.info(`引擎启动，锁定工作区: ${this.workDir}`);
     logger.info(`慢思考模式 (Thinking Phase): ${this.enableThinking}`);
 
@@ -68,6 +81,13 @@ export class AgentEngine {
       turnCount++;
       logger.info(`========== [Turn ${turnCount}] 开始 ==========`);
 
+      // 轮数熔断：超过 MAX_TURNS 强制退出，输出空 reply 让 reporter 渲染结束语
+      if (turnCount > MAX_TURNS) {
+        logger.warn(`已达到最大轮数 ${MAX_TURNS}，强制退出循环`);
+        r.onMessage(`已达最大轮数 ${MAX_TURNS}，任务未完成。`);
+        break;
+      }
+
       // 获取当前挂载的所有工具定义
       const availableTools = this.registry.getAvailableTools();
 
@@ -76,6 +96,7 @@ export class AgentEngine {
       // ====================================================================
       if (this.enableThinking) {
         logger.info('[Phase 1] 剥夺工具访问权，强制进入慢思考与规划阶段...');
+        r.onThinking();
 
         // 核心机制：传入的 availableTools 为空数组！
         // 大模型看不到任何工具定义，被迫只能输出纯文本的思考过程。
@@ -89,8 +110,14 @@ export class AgentEngine {
           // 如果模型输出了思考过程，我们将其作为 Assistant 消息追加到上下文中
           if (thinkResp.content) {
             logger.info(`🧠 [内部思考 Trace]: ${thinkResp.content}`);
-            contextHistory.push(thinkResp);
           }
+          // Phase 1 是纯思考阶段，绝不向 context 写入 tool_calls。
+          // 模型在无工具可用时会用文本格式"伪调用"（例如 <tool_call>...</tool_call>），
+          // provider 的兜底解析会把它们转成结构化 tool_calls，但这些调用从未被实际执行。
+          // 若保留 tool_calls，下一轮模型回看会以为已发起过任务，放弃重发。
+          // 清空 tool_calls 字段，但保留 content（叙述式思考对下轮仍有价值）。
+          delete thinkResp.tool_calls;
+          contextHistory.push(thinkResp);
         } catch (error) {
           throw new Error(
             `Thinking 阶段生成失败: ${error instanceof Error ? error.message : String(error)}`,
@@ -132,6 +159,8 @@ export class AgentEngine {
       // 如果模型没有请求任何工具调用，说明它认为任务已经完成，跳出循环。
       if (!actionResp.tool_calls || actionResp.tool_calls.length === 0) {
         logger.info('任务完成，退出循环。');
+        // 把模型的"最终对外回复"经由 reporter 渲染给用户
+        r.onMessage(actionResp.content);
         break;
       }
 
@@ -142,6 +171,8 @@ export class AgentEngine {
       const settled = await Promise.allSettled(
         actionResp.tool_calls.map((tc) => {
           logger.info(`  -> 🛠️ 派发: ${tc.name}, 参数: ${JSON.stringify(tc.arguments)}`);
+          // 派发前先通知 reporter；参数序列化为字符串供展示
+          r.onToolCall(tc.name, JSON.stringify(tc.arguments));
           return this.registry.execute(tc, signal);
         })
       );
@@ -170,6 +201,8 @@ export class AgentEngine {
         } else {
           logger.info(`  -> ✅ [${toolCall.name}] 成功 (返回 ${output.length} 字节)`);
         }
+        // 把工具执行结果（成功或失败）渲染给用户
+        r.onToolResult(toolCall.name, output, isError);
 
         const observationMsg: Message = {
           role: Role.User,
