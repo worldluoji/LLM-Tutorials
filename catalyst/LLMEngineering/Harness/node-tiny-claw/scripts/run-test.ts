@@ -67,6 +67,21 @@ const testConfigs: TestConfig[] = [
     command: 'tsx test/engine/test.parallel-dispatch.engine.ts',
     description: 'AgentEngine 并行工具分发表格驱动测试',
   },
+  {
+    name: 'skill',
+    command: 'tsx test/context/test.skill.ts',
+    description: 'SkillLoader 单元测试',
+  },
+  {
+    name: 'composer',
+    command: 'tsx test/context/test.composer.ts',
+    description: 'PromptComposer 单元测试',
+  },
+  {
+    name: 'composer-integration',
+    command: 'tsx test/engine/test.composer-integration.engine.ts',
+    description: 'PromptComposer 集成到 Main Loop 的端到端测试',
+  },
 ];
 
 // 检查环境变量

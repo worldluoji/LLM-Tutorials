@@ -4,6 +4,7 @@ import { Registry } from '../tools/registry.js';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
 import { Message, Role, ToolCall } from '../schema/message.ts';
 import { logger } from '../utils/logger.ts';
+import { PromptComposer } from '../context/composer.ts';
 
 // Use the global AbortSignal type if available (Node.js >= 15 or browsers)
 type AbortSignal = globalThis.AbortSignal;
@@ -16,6 +17,8 @@ export class AgentEngine {
   private registry: Registry;
   /** WorkDir (工作区): 借鉴 OpenClaw 的理念，Agent 必须有一个明确的物理边界 */
   public workDir: string;
+  /** PromptComposer 负责按 Core → AGENTS.md → Skills 顺序动态生成 System Prompt */
+  private composer: PromptComposer;
 
   private enableThinking: boolean = true; // 【新增】慢思考模式开关
 
@@ -23,6 +26,7 @@ export class AgentEngine {
     this.provider = provider;
     this.registry = registry;
     this.workDir = workDir;
+    this.composer = new PromptComposer(workDir);
     if (enableThinking !== undefined) {
       this.enableThinking = enableThinking;
     }
@@ -38,13 +42,13 @@ export class AgentEngine {
     logger.info(`慢思考模式 (Thinking Phase): ${this.enableThinking}`);
 
     // 1. 初始化会话的 Context (上下文内存)
-    // 在真实的场景中，这里会由动态 Prompt 组装器加载 AGENTS.md。目前我们先硬编码。
+    // System Prompt 由 PromptComposer 动态组装：极简内核 + AGENTS.md + Skills
+    logger.info('[System Prompt] 由 PromptComposer 组装中...');
+    const systemMessage = await this.composer.build();
+    logger.info(`[System Prompt] 组装完成 (${systemMessage.content.length} 字节)`);
+
     const contextHistory: Message[] = [
-      {
-        role: Role.System,
-        content:
-          'You are node-tiny-claw, an expert coding assistant. You have full access to tools in the workspace.',
-      },
+      systemMessage,
       {
         role: Role.User,
         content: userPrompt,
