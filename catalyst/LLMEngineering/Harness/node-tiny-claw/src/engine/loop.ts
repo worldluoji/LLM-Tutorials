@@ -5,6 +5,7 @@ import { Registry } from '../tools/registry.js';
 import { Message, Role, ToolCall } from '../schema/message.ts';
 import { logger } from '../utils/logger.ts';
 import { PromptComposer } from '../context/composer.ts';
+import { Session } from './session.ts';
 import { Reporter } from './terminal_reporter.ts';
 
 // Use the global AbortSignal type if available (Node.js >= 15 or browsers)
@@ -12,6 +13,13 @@ type AbortSignal = globalThis.AbortSignal;
 
 /** Main Loop 最大轮数：超出后强制退出，避免模型死循环把任务跑到分钟级 */
 const MAX_TURNS = 50;
+
+/**
+ * Working Memory 窗口大小：每次 generate 时从 Session 截取最近 N 条消息。
+ * 与 MAX_TURNS 同量级，足以覆盖一次典型任务的多轮推理；超出后由 Session.getWorkingMemory
+ * 的滑动窗口自然裁剪（含孤儿 tool_result 兜底）。
+ */
+const WORKING_MEMORY_LIMIT = 50;
 
 /**
  * AgentEngine 是微型 OS 的核心驱动
@@ -38,11 +46,23 @@ export class AgentEngine {
 
   /**
    * 启动 Agent 的生命周期
-   * @param userPrompt - 用户输入的初始提示词
+   *
+   * 设计要点：Session 是长程上下文承载体，Engine 自身不再持有"用完即毁"的私有 contextHistory。
+   * 每次 generate 时按 [system, ...session.getWorkingMemory(N)] 拼装当次请求，
+   * 并把 Phase 1 / Phase 2 响应、工具观察逐条 append 进 Session。
+   * 同一个 Session 可被多次 run 调用复用（多轮对话或外部驱动的新增指令）。
+   *
+   * @param session - 长程记忆载体；其 history 会被本次 run 追加写入
+   * @param userPrompt - 本轮新指令；run 启动时 append 到 Session
    * @param signal - 可选的取消信号，用于中断整个运行循环
    * @param reporter - 把 Agent 状态反馈给用户的渠道；缺省时静默 no-op（保持向后兼容）
    */
-  async run(userPrompt: string, signal?: AbortSignal, reporter?: Reporter): Promise<void> {
+  async run(
+    session: Session,
+    userPrompt: string,
+    signal?: AbortSignal,
+    reporter?: Reporter
+  ): Promise<void> {
     /** 静默 no-op reporter：保证 reporter 缺省时也不会 NPE */
     const r: Reporter = reporter ?? {
       onThinking: () => {},
@@ -51,26 +71,22 @@ export class AgentEngine {
       onMessage: () => {},
     };
 
-    logger.info(`引擎启动，锁定工作区: ${this.workDir}`);
+    logger.info(`引擎启动，锁定工作区: ${this.workDir} | Session: ${session.id}`);
     logger.info(`慢思考模式 (Thinking Phase): ${this.enableThinking}`);
 
-    // 1. 初始化会话的 Context (上下文内存)
-    // System Prompt 由 PromptComposer 动态组装：极简内核 + AGENTS.md + Skills
+    // 1. System Prompt 由 PromptComposer 动态组装：极简内核 + AGENTS.md + Skills
+    //    一次性组装，整轮 run 复用 —— 避免中途 system 漂移惊扰模型。
+    //    注意：systemMessage 不进 Session；它由 loop 在每次 generate 时临时拼到最前面。
     logger.info('[System Prompt] 由 PromptComposer 组装中...');
     const systemMessage = await this.composer.build();
     logger.info(`[System Prompt] 组装完成 (${systemMessage.content.length} 字节)`);
 
-    const contextHistory: Message[] = [
-      systemMessage,
-      {
-        role: Role.User,
-        content: userPrompt,
-      },
-    ];
+    // 2. 把本轮用户指令落库到 Session，作为新一轮对话的起点
+    session.append({ role: Role.User, content: userPrompt });
 
     let turnCount = 0;
 
-    // 2. The Main Loop: 心跳开始 (Two-Stage ReAct 循环)
+    // 3. The Main Loop: 心跳开始 (Two-Stage ReAct 循环)
     while (true) {
       // 支持通过 AbortSignal 中断循环
       if (signal?.aborted) {
@@ -90,6 +106,13 @@ export class AgentEngine {
 
       // 获取当前挂载的所有工具定义
       const availableTools = this.registry.getAvailableTools();
+
+      // 拼装当次 generate 的上下文：system + 最近 N 条 working memory
+      // 关键：每次循环重新拉取，保证 Phase 1 / Phase 2 看到的都是"截至此刻的最新历史"
+      const contextHistory: Message[] = [
+        systemMessage,
+        ...session.getWorkingMemory(WORKING_MEMORY_LIMIT),
+      ];
 
       // ====================================================================
       // Phase 1: 慢思考阶段 (Thinking) - 剥夺工具，强制规划
@@ -111,13 +134,13 @@ export class AgentEngine {
           if (thinkResp.content) {
             logger.info(`🧠 [内部思考 Trace]: ${thinkResp.content}`);
           }
-          // Phase 1 是纯思考阶段，绝不向 context 写入 tool_calls。
+          // Phase 1 是纯思考阶段，绝不向 Session 写入 tool_calls。
           // 模型在无工具可用时会用文本格式"伪调用"（例如 <tool_call>...</tool_call>），
           // provider 的兜底解析会把它们转成结构化 tool_calls，但这些调用从未被实际执行。
           // 若保留 tool_calls，下一轮模型回看会以为已发起过任务，放弃重发。
           // 清空 tool_calls 字段，但保留 content（叙述式思考对下轮仍有价值）。
           delete thinkResp.tool_calls;
-          contextHistory.push(thinkResp);
+          session.append(thinkResp);
         } catch (error) {
           throw new Error(
             `Thinking 阶段生成失败: ${error instanceof Error ? error.message : String(error)}`,
@@ -131,12 +154,18 @@ export class AgentEngine {
       // ====================================================================
       logger.info('[Phase 2] 恢复工具挂载，等待模型采取行动...');
 
-      // 此时的 contextHistory 中已经包含了上一阶段模型自己的 Thinking Trace。
+      // 重新拉取一次 working memory，确保 Phase 2 看到 Phase 1 的 thinking trace
+      // （如果存在 enableThinking）。
+      const actionContext: Message[] = [
+        systemMessage,
+        ...session.getWorkingMemory(WORKING_MEMORY_LIMIT),
+      ];
+
       // 模型会顺着自己的逻辑，结合恢复的 availableTools 发起精准的工具调用。
       let actionResp: Message;
       try {
         actionResp = await this.provider.generate(
-          contextHistory,
+          actionContext,
           availableTools,
           signal
         );
@@ -147,7 +176,7 @@ export class AgentEngine {
         );
       }
 
-      contextHistory.push(actionResp);
+      session.append(actionResp);
 
       if (actionResp.content) {
         logger.info(`🤖 [对外回复]: ${actionResp.content}`);
@@ -179,8 +208,9 @@ export class AgentEngine {
 
       // Join: 按原索引回填 observation。
       // - Promise.allSettled 的结果数组与输入数组索引严格对齐，与"哪个先完成"无关。
-      // - 按 tool_calls 原序 push，保证 contextHistory 中 tool_call_id 顺序与模型期望一致。
+      // - 按 tool_calls 原序 append 进 Session，保证 history 中 tool_call_id 顺序与模型期望一致。
       // - 使用 allSettled 而非 all：失败原样回传给模型，由其在下一轮自纠错（YOLO 哲学）。
+      const observations: Message[] = [];
       for (let i = 0; i < actionResp.tool_calls.length; i++) {
         const toolCall = actionResp.tool_calls[i];
         const s = settled[i];
@@ -204,13 +234,14 @@ export class AgentEngine {
         // 把工具执行结果（成功或失败）渲染给用户
         r.onToolResult(toolCall.name, output, isError);
 
-        const observationMsg: Message = {
+        observations.push({
           role: Role.User,
           content: output,
           tool_call_id: toolCall.id,
-        };
-        contextHistory.push(observationMsg);
+        });
       }
+      // 一次性 append 所有 observation，updatedAt 只刷新一次
+      session.append(...observations);
 
       // 循环回到开头，模型将带着新加入的 Observation 继续它的下一轮思考...
     }

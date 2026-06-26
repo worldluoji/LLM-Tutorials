@@ -92,6 +92,11 @@ const testConfigs: TestConfig[] = [
     command: 'tsx test/llm/test.parse-text-tool-calls.ts',
     description: 'parseTextToolCalls 纯函数单元测试',
   },
+  {
+    name: 'session',
+    command: 'tsx test/engine/test.session.engine.ts',
+    description: 'Session / SessionManager 单元测试',
+  },
 ];
 
 // 检查环境变量

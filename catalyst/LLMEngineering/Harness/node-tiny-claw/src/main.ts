@@ -15,6 +15,7 @@ import path from 'node:path';
 import { logger } from './utils/logger.ts';
 import { AgentEngine } from './engine/loop.ts';
 import { newTerminalReporter } from './engine/terminal_reporter.ts';
+import { globalSessionMgr } from './engine/session.ts';
 import { MiniMaxProvider } from './llm/minimax-provider.ts';
 import { RegistryImpl } from './tools/registry.ts';
 import { BashTool } from './tools/bash.ts';
@@ -42,9 +43,11 @@ async function main(): Promise<void> {
   registry.register(new BashTool(workDir));
   registry.register(new EditFileTool(workDir));
 
-  // 5. 引擎 + 终端 reporter
+  // 5. 引擎 + 终端 reporter + Session
   const eng = new AgentEngine(llmProvider, registry, workDir, true);
   const reporter = newTerminalReporter();
+  // CLI 默认一个固定 session id；多终端隔离可改为目录哈希或终端 PID。
+  const session = globalSessionMgr.getOrCreate('cli-default', workDir);
 
   const prompt = `
     我需要在当前目录下新建一个 ping.ts，提供一个简单的 http ping 接口。
@@ -52,7 +55,7 @@ async function main(): Promise<void> {
     `;
 
   try {
-    await eng.run(prompt, undefined, reporter);
+    await eng.run(session, prompt, undefined, reporter);
   } catch (err) {
     logger.fatal(`引擎运行崩溃: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);

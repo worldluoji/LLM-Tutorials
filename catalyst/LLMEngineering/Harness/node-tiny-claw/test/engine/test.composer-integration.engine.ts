@@ -18,6 +18,7 @@ import {
 } from '../../src/schema/message.ts';
 import { LLMProvider } from '../../src/llm/llm-provider.ts';
 import { BaseTool, Registry } from '../../src/tools/registry.ts';
+import { Session } from '../../src/engine/session.ts';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
@@ -196,8 +197,9 @@ async function runCase(c: TestCase): Promise<void> {
     const provider = new MockProvider(toolCall);
     const registry = new MockRegistry();
     const engine = new AgentEngine(provider, registry, workDir, false); // 关掉 thinking 简化
+    const session = new Session('composer-integration-test', workDir);
 
-    await engine.run('integration-test');
+    await engine.run(session, 'integration-test');
 
     // 1) System Prompt 必须存在且来自 composer
     assert.ok(

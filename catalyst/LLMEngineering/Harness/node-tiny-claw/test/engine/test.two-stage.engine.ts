@@ -11,6 +11,7 @@ import {
   ToolResult,
 } from '../../src/schema/message.ts'; // 类型定义
 import { LLMProvider } from '../../src/llm/llm-provider.ts';
+import { Session } from '../../src/engine/session.ts';
 import { logger } from '../../src/utils/logger.ts';
 // 注意：由于是 Mock，我们并不需要真实 Provider 基类，只需实现其接口即可
 
@@ -109,9 +110,10 @@ async function runTest() {
     workDir,
     true // 启用 Two-Stage ReAct 慢思考模式
   );
+  const session = new Session('two-stage-test', workDir);
 
   try {
-    await engine.run('帮我检查当前目录的文件');
+    await engine.run(session, '帮我检查当前目录的文件');
     logger.info('测试完成');
   } catch (error) {
     logger.error(`引擎崩溃: ${error}`);

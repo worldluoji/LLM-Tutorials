@@ -21,6 +21,7 @@ import {
 } from '../../src/schema/message.ts';
 import { LLMProvider } from '../../src/llm/llm-provider.ts';
 import { Registry, BaseTool } from '../../src/tools/registry.ts';
+import { Session } from '../../src/engine/session.ts';
 
 // ============================================================
 // MockRegistry: 按预设的延迟/模式回应每个 tool_call
@@ -226,11 +227,12 @@ async function runCase(c: TestCase): Promise<void> {
   const provider = new MockProvider(c.toolCalls);
   const registry = new MockRegistry(c.specs);
   const engine = new AgentEngine(provider, registry, process.cwd(), false); // 关闭 thinking 简化
+  const session = new Session(`parallel-${Math.random().toString(36).slice(2, 8)}`, process.cwd());
 
   const t0 = performance.now();
   let thrown: unknown = null;
   try {
-    await engine.run(`run case: ${c.name}`);
+    await engine.run(session, `run case: ${c.name}`);
   } catch (e) {
     thrown = e;
   }
