@@ -51,12 +51,13 @@ export class AgentEngine {
     registry: Registry,
     workDir: string,
     enableThinking?: boolean,
-    compactor?: Compactor
+    compactor?: Compactor,
+    planMode?: boolean
   ) {
     this.provider = provider;
     this.registry = registry;
     this.workDir = workDir;
-    this.composer = new PromptComposer(workDir);
+    this.composer = new PromptComposer(workDir, planMode ?? false);
     if (enableThinking !== undefined) {
       this.enableThinking = enableThinking;
     }

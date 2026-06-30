@@ -22,6 +22,8 @@ interface TestCase {
   expectedNotContains?: string[];
   /** 按数组顺序断言每个子串在 content 中出现的索引严格递增 */
   expectedOrder?: string[];
+  /** 开启 Plan Mode：默认 false。true 时 build() 会注入 PLAN_MODE_SECTION。 */
+  planMode?: boolean;
 }
 
 /** 极简内核的指纹：每个用例都必须包含，验证 CORE_IDENTITY 未被退化 */
@@ -29,6 +31,15 @@ const CORE_MARKERS = [
   '你名叫 node-tiny-claw',
   '核心纪律 (CRITICAL)',
   '始终用中文回复',
+];
+
+/** Plan Mode 关键词指纹：默认 planMode=false 的用例必须全部缺席，验证 planMode 未被误注入 */
+const PLAN_MODE_ABSENT_MARKERS = [
+  '长程任务与状态外部化强制规范',
+  'Plan Mode: ON',
+  'STEP 1: 强制环境嗅探',
+  'STEP 2: 严格的单步执行与实时打勾',
+  'STEP 3: 迷失时的自救',
 ];
 
 const testCases: TestCase[] = [
@@ -118,6 +129,73 @@ const testCases: TestCase[] = [
       '6. 始终用中文回复',
     ],
   },
+
+  // ============================================================
+  // Plan Mode 用例（教程第 12 章）
+  // ============================================================
+  {
+    name: '#15 planMode=true 无 AGENTS.md 无 skills - 注入 plan section + CORE_MARKERS',
+    files: [],
+    planMode: true,
+    expectedContains: [
+      ...CORE_MARKERS,
+      '长程任务与状态外部化强制规范',
+      'Plan Mode: ON',
+      'PLAN.md',
+      'TODO.md',
+      'STEP 1: 强制环境嗅探',
+      'STEP 2: 严格的单步执行与实时打勾',
+      'STEP 3: 迷失时的自救',
+    ],
+    expectedNotContains: ['项目专属指南', '可用专业技能'],
+  },
+  {
+    name: '#16 planMode=true 顺序正确 - plan section 在 AGENTS.md 之前',
+    files: [{ path: 'AGENTS.md', content: '项目规范 B\n' }],
+    planMode: true,
+    expectedContains: [
+      ...CORE_MARKERS,
+      'Plan Mode: ON',
+      '# 项目专属指南 (来自 AGENTS.md)',
+      '项目规范 B',
+    ],
+    expectedOrder: [
+      '你名叫 node-tiny-claw',
+      'Plan Mode: ON',
+      '# 项目专属指南 (来自 AGENTS.md)',
+      '项目规范 B',
+    ],
+  },
+  {
+    name: '#17 planMode=true 有 AGENTS.md 有 skills - 四段齐全顺序正确',
+    files: [
+      { path: 'AGENTS.md', content: '项目规范 C\n' },
+      {
+        path: '.claw/skills/planned/SKILL.md',
+        content:
+          '---\n' +
+          'name: Plan Skill\n' +
+          'description: A skill loaded under plan mode\n' +
+          '---\n' +
+          '\n' +
+          'Plan body.\n',
+      },
+    ],
+    planMode: true,
+    expectedContains: [
+      ...CORE_MARKERS,
+      'Plan Mode: ON',
+      '项目规范 C',
+      '技能名称: Plan Skill',
+      'Plan body.',
+    ],
+    expectedOrder: [
+      '你名叫 node-tiny-claw',
+      'Plan Mode: ON',
+      '项目规范 C',
+      '技能名称: Plan Skill',
+    ],
+  },
 ];
 
 // ==========================================
@@ -135,7 +213,7 @@ async function runTest(testCase: TestCase): Promise<boolean> {
       await fs.writeFile(fullPath, file.content, 'utf-8');
     }
 
-    const composer = new PromptComposer(workDir);
+    const composer = new PromptComposer(workDir, testCase.planMode ?? false);
     const result = await composer.build();
 
     let success = true;
@@ -160,6 +238,19 @@ async function runTest(testCase: TestCase): Promise<boolean> {
           `[失败] 期望 content 不包含 '${unexpected}'，实际: ${JSON.stringify(result.content)}`
         );
         success = false;
+      }
+    }
+
+    // Plan Mode 缺席断言：除非用例显式 planMode=true，否则禁止出现 plan mode 关键词。
+    // 这一道"自动哨兵"避免默认行为被误改注入 plan section。
+    if (!testCase.planMode) {
+      for (const marker of PLAN_MODE_ABSENT_MARKERS) {
+        if (result.content.includes(marker)) {
+          logger.error(
+            `[失败] 默认 planMode=false 时不应包含 '${marker}'，但实际注入了 plan mode section`
+          );
+          success = false;
+        }
       }
     }
 
