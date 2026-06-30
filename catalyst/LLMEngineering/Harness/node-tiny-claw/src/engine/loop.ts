@@ -5,6 +5,7 @@ import { Registry } from '../tools/registry.js';
 import { Message, Role, ToolCall } from '../schema/message.ts';
 import { logger } from '../utils/logger.ts';
 import { PromptComposer } from '../context/composer.ts';
+import { Compactor } from '../context/compactor.ts';
 import { Session } from './session.ts';
 import { Reporter } from './terminal_reporter.ts';
 
@@ -21,6 +22,12 @@ const MAX_TURNS = 50;
  */
 const WORKING_MEMORY_LIMIT = 50;
 
+/** Compactor 默认水位线：字符数阈值，触发"阶梯降级"压缩。与 Go 版对齐（3000）。 */
+const DEFAULT_COMPACTOR_MAX_CHARS = 3000;
+
+/** Compactor 默认保护区：Working Memory 中受保护的最近 N 条消息（约 2 轮 Turn 交互）。 */
+const DEFAULT_COMPACTOR_RETAIN_LAST_MSGS = 6;
+
 /**
  * AgentEngine 是微型 OS 的核心驱动
  */
@@ -31,10 +38,21 @@ export class AgentEngine {
   public workDir: string;
   /** PromptComposer 负责按 Core → AGENTS.md → Skills 顺序动态生成 System Prompt */
   private composer: PromptComposer;
+  /**
+   * Context Compactor：每次发起推理前对临时 context 做"阶梯降级"压缩（远期掩码 / 近期截断）。
+   * 默认走 DEFAULT_COMPACTOR_MAX_CHARS / DEFAULT_COMPACTOR_RETAIN_LAST_MSGS；测试或特殊场景可注入自定义实例。
+   */
+  private readonly compactor: Compactor;
 
   private enableThinking: boolean = true; // 【新增】慢思考模式开关
 
-  constructor(provider: LLMProvider, registry: Registry, workDir: string, enableThinking?: boolean) {
+  constructor(
+    provider: LLMProvider,
+    registry: Registry,
+    workDir: string,
+    enableThinking?: boolean,
+    compactor?: Compactor
+  ) {
     this.provider = provider;
     this.registry = registry;
     this.workDir = workDir;
@@ -42,6 +60,22 @@ export class AgentEngine {
     if (enableThinking !== undefined) {
       this.enableThinking = enableThinking;
     }
+    this.compactor = compactor ?? new Compactor(DEFAULT_COMPACTOR_MAX_CHARS, DEFAULT_COMPACTOR_RETAIN_LAST_MSGS);
+  }
+
+  /**
+   * 拼装当次 generate 要发给大模型的临时上下文：system + 最近 N 条 working memory，
+   * 并强制过一次 Compactor 做"阶梯降级"压缩。
+   *
+   * 关键设计：
+   * - Session 的持久化历史永远是全量原始响应（见 run() 中所有 session.append 调用），
+   *   压缩只作用于本轮发给大模型的这个临时 context，绝不污染 Session。
+   * - Phase 1 思考完后会 session.append(thinkResp)，
+   *   所以 Phase 2 必须重新拉一次 Session 重建 context，并再次走 Compactor。
+   */
+  private buildCompactedContext(session: Session, systemMessage: Message): Message[] {
+    const raw: Message[] = [systemMessage, ...session.getWorkingMemory(WORKING_MEMORY_LIMIT)];
+    return this.compactor.compact(raw);
   }
 
   /**
@@ -107,12 +141,10 @@ export class AgentEngine {
       // 获取当前挂载的所有工具定义
       const availableTools = this.registry.getAvailableTools();
 
-      // 拼装当次 generate 的上下文：system + 最近 N 条 working memory
-      // 关键：每次循环重新拉取，保证 Phase 1 / Phase 2 看到的都是"截至此刻的最新历史"
-      const contextHistory: Message[] = [
-        systemMessage,
-        ...session.getWorkingMemory(WORKING_MEMORY_LIMIT),
-      ];
+      // 拼装当次 generate 的上下文：system + 最近 N 条 working memory，再走 Compactor 做阶梯降级。
+      // 关键：每次循环重新拉取，保证 Phase 1 / Phase 2 看到的都是"截至此刻的最新历史"；
+      // 压缩只作用于发给 Provider 的临时 context，Session 持久化的永远是全量原始响应。
+      const contextHistory = this.buildCompactedContext(session, systemMessage);
 
       // ====================================================================
       // Phase 1: 慢思考阶段 (Thinking) - 剥夺工具，强制规划
@@ -154,12 +186,9 @@ export class AgentEngine {
       // ====================================================================
       logger.info('[Phase 2] 恢复工具挂载，等待模型采取行动...');
 
-      // 重新拉取一次 working memory，确保 Phase 2 看到 Phase 1 的 thinking trace
-      // （如果存在 enableThinking）。
-      const actionContext: Message[] = [
-        systemMessage,
-        ...session.getWorkingMemory(WORKING_MEMORY_LIMIT),
-      ];
+      // 重新拉取一次 working memory + 再走一次 Compactor，
+      // 确保 Phase 2 看到 Phase 1 的 thinking trace 并同样享受压缩保护。
+      const actionContext = this.buildCompactedContext(session, systemMessage);
 
       // 模型会顺着自己的逻辑，结合恢复的 availableTools 发起精准的工具调用。
       let actionResp: Message;

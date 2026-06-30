@@ -97,6 +97,11 @@ const testConfigs: TestConfig[] = [
     command: 'tsx test/engine/test.session.engine.ts',
     description: 'Session / SessionManager 单元测试',
   },
+  {
+    name: 'compactor',
+    command: 'tsx test/context/test.compactor.ts',
+    description: 'Context Compactor 单元测试',
+  },
 ];
 
 // 检查环境变量
