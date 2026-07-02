@@ -102,6 +102,11 @@ const testConfigs: TestConfig[] = [
     command: 'tsx test/context/test.compactor.ts',
     description: 'Context Compactor 单元测试',
   },
+  {
+    name: 'recovery',
+    command: 'tsx test/context/test.recovery.ts',
+    description: 'Error Recovery 单元测试',
+  },
 ];
 
 // 检查环境变量
