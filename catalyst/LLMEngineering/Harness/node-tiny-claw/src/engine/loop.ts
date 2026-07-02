@@ -6,6 +6,7 @@ import { Message, Role, ToolCall } from '../schema/message.ts';
 import { logger } from '../utils/logger.ts';
 import { PromptComposer } from '../context/composer.ts';
 import { Compactor } from '../context/compactor.ts';
+import { RecoveryManager } from '../context/recovery.ts';
 import { Session } from './session.ts';
 import { Reporter } from './terminal_reporter.ts';
 
@@ -43,6 +44,11 @@ export class AgentEngine {
    * 默认走 DEFAULT_COMPACTOR_MAX_CHARS / DEFAULT_COMPACTOR_RETAIN_LAST_MSGS；测试或特殊场景可注入自定义实例。
    */
   private readonly compactor: Compactor;
+  /**
+   * Error Recovery：工具报错时按工具名匹配已知错误模式，注入"系统救援指南"提示，
+   * 把生硬错误改造成带有强烈倾向性的自救路径。默认构造实例；测试可注入 mock。
+   */
+  private readonly recovery: RecoveryManager;
 
   private enableThinking: boolean = true; // 【新增】慢思考模式开关
 
@@ -52,7 +58,8 @@ export class AgentEngine {
     workDir: string,
     enableThinking?: boolean,
     compactor?: Compactor,
-    planMode?: boolean
+    planMode?: boolean,
+    recovery?: RecoveryManager
   ) {
     this.provider = provider;
     this.registry = registry;
@@ -62,6 +69,7 @@ export class AgentEngine {
       this.enableThinking = enableThinking;
     }
     this.compactor = compactor ?? new Compactor(DEFAULT_COMPACTOR_MAX_CHARS, DEFAULT_COMPACTOR_RETAIN_LAST_MSGS);
+    this.recovery = recovery ?? new RecoveryManager();
   }
 
   /**
@@ -257,7 +265,11 @@ export class AgentEngine {
         }
 
         if (isError) {
-          logger.error(`  -> ❌ [${toolCall.name}] 报错: ${output}`);
+          // 【核心拦截与注入】让 RecoveryManager 按工具名分析报错特征，
+          // 若命中已知模式则追加"\n\n[系统救援指南]: <hint>"，把生硬错误改造成自救路径；
+          // 未命中时原样返回，保留原始错误作为根因锚点。
+          output = this.recovery.analyzeAndInject(toolCall.name, output);
+          logger.error(`  -> ❌ [${toolCall.name}] 报错（已注入救援指南）: ${output}`);
         } else {
           logger.info(`  -> ✅ [${toolCall.name}] 成功 (返回 ${output.length} 字节)`);
         }

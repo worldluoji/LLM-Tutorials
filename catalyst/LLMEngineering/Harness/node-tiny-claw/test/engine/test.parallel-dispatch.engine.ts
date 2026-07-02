@@ -218,6 +218,119 @@ const cases: TestCase[] = [
       );
     },
   },
+
+  // ============================================================
+  // Error Recovery 集成用例（教程第 13 章）
+  // ============================================================
+  {
+    name: '#R1 bash 超时 errorResult - observation 被注入"转入后台执行"救援指南',
+    toolCalls: [mkCall('B', 'bash')],
+    specs: new Map<string, CallSpec>([
+      [
+        'B',
+        {
+          mode: 'errorResult',
+          delayMs: 30,
+          errMsg: '[警告: 命令执行超时(30s)，已被系统强制终止]',
+        },
+      ],
+    ]),
+    verify: ({ provider }) => {
+      const observations = provider.capturedHistory.filter(
+        (m) => m.tool_call_id !== undefined
+      );
+      assert.equal(observations.length, 1);
+      // 原始错误必须保留作为根因锚点
+      assert.ok(
+        observations[0].content.startsWith('[警告: 命令执行超时(30s)'),
+        `原始错误应在前缀位置：${JSON.stringify(observations[0].content)}`
+      );
+      // Recovery 注入的标记 + 救援指南文本
+      assert.ok(
+        observations[0].content.includes('[系统救援指南]:'),
+        `必须带 [系统救援指南] 标记：${JSON.stringify(observations[0].content)}`
+      );
+      assert.ok(
+        observations[0].content.includes('转入后台执行'),
+        `应包含 bash 超时救援指南文本：${JSON.stringify(observations[0].content)}`
+      );
+    },
+  },
+  {
+    name: '#R2 edit_file fuzzyReplace 未命中 - observation 被注入"先 read_file 再编辑"救援指南',
+    toolCalls: [mkCall('E', 'edit_file')],
+    specs: new Map<string, CallSpec>([
+      [
+        'E',
+        {
+          mode: 'errorResult',
+          delayMs: 30,
+          errMsg: 'Error: 在文件中未找到 old_text，请大模型先调用 read_file 仔细确认',
+        },
+      ],
+    ]),
+    verify: ({ provider }) => {
+      const observations = provider.capturedHistory.filter(
+        (m) => m.tool_call_id !== undefined
+      );
+      assert.equal(observations.length, 1);
+      assert.ok(observations[0].content.includes('[系统救援指南]:'));
+      assert.ok(
+        observations[0].content.includes('请先使用 `read_file`'),
+        `应包含 edit_file 未命中救援指南：${JSON.stringify(observations[0].content)}`
+      );
+    },
+  },
+  {
+    name: '#R3 read_file 文件不存在 - observation 被注入"先 ls/find"救援指南',
+    toolCalls: [mkCall('R', 'read_file')],
+    specs: new Map<string, CallSpec>([
+      [
+        'R',
+        {
+          mode: 'errorResult',
+          delayMs: 30,
+          errMsg: "Error: 文件 'src/missing.ts' 不存在。",
+        },
+      ],
+    ]),
+    verify: ({ provider }) => {
+      const observations = provider.capturedHistory.filter(
+        (m) => m.tool_call_id !== undefined
+      );
+      assert.equal(observations.length, 1);
+      assert.ok(observations[0].content.includes('[系统救援指南]:'));
+      assert.ok(
+        observations[0].content.includes('先使用 `bash` 执行 `ls -la`'),
+        `应包含 read_file 文件不存在救援指南：${JSON.stringify(observations[0].content)}`
+      );
+    },
+  },
+  {
+    name: '#R4 未知工具名 fake - observation 原样返回（recovery 兜底分支不命中）',
+    toolCalls: [mkCall('X')],
+    specs: new Map<string, CallSpec>([
+      [
+        'X',
+        {
+          mode: 'errorResult',
+          delayMs: 30,
+          errMsg: 'something vaguely bad happened',
+        },
+      ],
+    ]),
+    verify: ({ provider }) => {
+      const observations = provider.capturedHistory.filter(
+        (m) => m.tool_call_id !== undefined
+      );
+      assert.equal(observations.length, 1);
+      assert.equal(
+        observations[0].content,
+        'something vaguely bad happened',
+        '未知工具名走 default 分支应原样返回，不应注入任何救援指南'
+      );
+    },
+  },
 ];
 
 // ============================================================
