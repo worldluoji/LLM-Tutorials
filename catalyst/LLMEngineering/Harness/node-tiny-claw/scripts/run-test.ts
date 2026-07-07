@@ -107,6 +107,11 @@ const testConfigs: TestConfig[] = [
     command: 'tsx test/context/test.recovery.ts',
     description: 'Error Recovery 单元测试',
   },
+  {
+    name: 'reminder',
+    command: 'tsx test/engine/test.reminder.ts',
+    description: 'Doom Loop ReminderInjector 单元测试',
+  },
 ];
 
 // 检查环境变量

@@ -7,6 +7,7 @@ import { logger } from '../utils/logger.ts';
 import { PromptComposer } from '../context/composer.ts';
 import { Compactor } from '../context/compactor.ts';
 import { RecoveryManager } from '../context/recovery.ts';
+import { ReminderInjector } from './reminder.ts';
 import { Session } from './session.ts';
 import { Reporter } from './terminal_reporter.ts';
 
@@ -49,6 +50,13 @@ export class AgentEngine {
    * 把生硬错误改造成带有强烈倾向性的自救路径。默认构造实例；测试可注入 mock。
    */
   private readonly recovery: RecoveryManager;
+  /**
+   * Doom Loop Reminder：当 Agent 在同一 (toolName, args) 指纹上连续失败达到阈值时，
+   * 注入一条 RoleUser 形态的"打断指令"作为上下文最末端消息——
+   * 利用近因偏差（Recency Bias）让模型在下次推理时优先读到该警告。
+   * 默认构造实例；测试可注入 mock 验证计数 / 注入时序。
+   */
+  private readonly reminder: ReminderInjector;
 
   private enableThinking: boolean = true; // 【新增】慢思考模式开关
 
@@ -59,7 +67,8 @@ export class AgentEngine {
     enableThinking?: boolean,
     compactor?: Compactor,
     planMode?: boolean,
-    recovery?: RecoveryManager
+    recovery?: RecoveryManager,
+    reminder?: ReminderInjector
   ) {
     this.provider = provider;
     this.registry = registry;
@@ -70,6 +79,7 @@ export class AgentEngine {
     }
     this.compactor = compactor ?? new Compactor(DEFAULT_COMPACTOR_MAX_CHARS, DEFAULT_COMPACTOR_RETAIN_LAST_MSGS);
     this.recovery = recovery ?? new RecoveryManager();
+    this.reminder = reminder ?? new ReminderInjector();
   }
 
   /**
@@ -249,6 +259,7 @@ export class AgentEngine {
       // - 按 tool_calls 原序 append 进 Session，保证 history 中 tool_call_id 顺序与模型期望一致。
       // - 使用 allSettled 而非 all：失败原样回传给模型，由其在下一轮自纠错（YOLO 哲学）。
       const observations: Message[] = [];
+      let doomLoopReminder: Message | null = null;
       for (let i = 0; i < actionResp.tool_calls.length; i++) {
         const toolCall = actionResp.tool_calls[i];
         const s = settled[i];
@@ -270,8 +281,23 @@ export class AgentEngine {
           // 未命中时原样返回，保留原始错误作为根因锚点。
           output = this.recovery.analyzeAndInject(toolCall.name, output);
           logger.error(`  -> ❌ [${toolCall.name}] 报错（已注入救援指南）: ${output}`);
+
+          // 【死循环监控】同 (toolName, args) 指纹累计失败达阈值时，
+          // 捕获 ReminderInjector 返回的打断指令；只取本 Turn 内第一个，
+          // 避免同一指纹在 3 次后又连发 4/5/6 次的刷屏。
+          if (doomLoopReminder === null) {
+            doomLoopReminder = this.reminder.checkAndInject(
+              { name: toolCall.name, arguments: toolCall.arguments },
+              { tool_call_id: toolCall.id, output, is_error: true }
+            );
+          }
         } else {
           logger.info(`  -> ✅ [${toolCall.name}] 成功 (返回 ${output.length} 字节)`);
+          // 成功调用也会让 reminder 清空所有计数（YOLO 自愈路径走通）
+          this.reminder.checkAndInject(
+            { name: toolCall.name, arguments: toolCall.arguments },
+            { tool_call_id: toolCall.id, output, is_error: false }
+          );
         }
         // 把工具执行结果（成功或失败）渲染给用户
         r.onToolResult(toolCall.name, output, isError);
@@ -284,6 +310,13 @@ export class AgentEngine {
       }
       // 一次性 append 所有 observation，updatedAt 只刷新一次
       session.append(...observations);
+
+      // 【System Reminder 注入点】必须在所有 observations 之后追加，
+      // 以保证它成为 Session 末尾最后一条消息 —— 利用近因偏差让模型
+      // 在下次推理时优先读到这条"打破执念"的指令。
+      if (doomLoopReminder !== null) {
+        session.append(doomLoopReminder);
+      }
 
       // 循环回到开头，模型将带着新加入的 Observation 继续它的下一轮思考...
     }
