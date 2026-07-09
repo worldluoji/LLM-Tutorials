@@ -122,6 +122,11 @@ const testConfigs: TestConfig[] = [
     command: 'tsx test/engine/test.trace.ts',
     description: '极简 Trace 引擎单元测试',
   },
+  {
+    name: 'benchmark',
+    command: 'tsx test/eval/test.benchmark.ts',
+    description: 'Benchmark 跑分引擎单元测试',
+  },
 ];
 
 // 检查环境变量
