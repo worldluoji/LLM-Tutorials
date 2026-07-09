@@ -22,6 +22,7 @@ import {
 import { LLMProvider } from '../../src/llm/llm-provider.ts';
 import { Registry, BaseTool } from '../../src/tools/registry.ts';
 import { Session } from '../../src/engine/session.ts';
+import { Tracer } from '../../src/engine/trace.ts';
 
 // ============================================================
 // MockRegistry: 按预设的延迟/模式回应每个 tool_call
@@ -505,6 +506,81 @@ async function runCase(c: TestCase): Promise<void> {
   c.verify?.({ provider, elapsedMs });
 }
 
+// ============================================================
+// Trace 集成用例（教程第 18 章）
+// 验证：AgentEngine 集成 Tracer 后，run() 结束能产出符合预期的 Span 决策树。
+// 通过注入一个已启用的 Tracer 来捕获 report() 输出，不依赖日志副作用。
+// ============================================================
+async function runTraceIntegrationCase(): Promise<void> {
+  const provider = new MockProvider([mkCall('A'), mkCall('B', 'bash')]);
+  const registry = new MockRegistry(
+    new Map<string, CallSpec>([
+      ['A', { mode: 'resolve', delayMs: 10, output: 'result-A' }],
+      ['B', { mode: 'resolve', delayMs: 10, output: 'result-B' }],
+    ])
+  );
+  const tracer = new Tracer(true);
+  // 把 tracer 通过构造参数注入（与 compactor/recovery/reminder 风格一致）
+  const engine = new AgentEngine(
+    provider,
+    registry,
+    process.cwd(),
+    false, // 关闭 thinking 简化
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    tracer
+  );
+  const session = new Session(`trace-int-${Math.random().toString(36).slice(2, 8)}`, process.cwd());
+
+  await engine.run(session, 'integration prompt');
+
+  const report = tracer.report();
+  assert.ok(report, '启用 tracer 后 report() 应非 null');
+
+  // 根 span
+  assert.equal(report!.name, 'Agent.Run');
+  assert.ok(report!.attributes);
+  assert.equal(report!.attributes!['SessionID'], session.id);
+  assert.equal(typeof report!.attributes!['WorkDir'], 'string');
+  assert.ok(report!.duration_ms >= 0);
+
+  // 应有 2 个 Turn（Turn-1 执行 tool_calls，Turn-2 模型返回 'done' 收尾）
+  assert.equal(report!.children?.length, 2);
+  const turn1 = report!.children!.find((s) => s.name === 'Turn-1');
+  const turn2 = report!.children!.find((s) => s.name === 'Turn-2');
+  assert.ok(turn1, '应含 Turn-1 span');
+  assert.ok(turn2, '应含 Turn-2 span（收尾轮）');
+
+  // Turn-1：context_message_count 至少有 user prompt + assistant response
+  assert.ok(turn1!.attributes);
+  assert.equal(typeof turn1!.attributes!['context_message_count'], 'number');
+
+  // Turn-1 下：1 LLM.Action + 2 Tool.Execute = 3 children
+  assert.equal(turn1!.children?.length, 3);
+  const llm = turn1!.children!.find((s) => s.name === 'LLM.Action');
+  assert.ok(llm, '应含 LLM.Action span');
+  const tools = turn1!.children!.filter((s) => s.name === 'Tool.Execute');
+  assert.equal(tools.length, 2, '应含 2 个 Tool.Execute span（与 tool_calls 数量一致）');
+
+  // Tool.Execute 第一个：name=fake，output_preview=result-A
+  const fakeSpan = tools.find((s) => s.attributes?.['tool_name'] === 'fake');
+  assert.ok(fakeSpan, '应含 tool_name=fake 的 span');
+  assert.equal(fakeSpan!.attributes!['output_preview'], 'result-A');
+
+  // Tool.Execute 第二个：name=bash，output_preview=result-B
+  const bashSpan = tools.find((s) => s.attributes?.['tool_name'] === 'bash');
+  assert.ok(bashSpan, '应含 tool_name=bash 的 span');
+  assert.equal(bashSpan!.attributes!['output_preview'], 'result-B');
+
+  // duration_ms 合理性（Tool.Execute 至少应 >= 10ms，因为 mock 延迟 10ms）
+  assert.ok(
+    fakeSpan!.duration_ms >= 8,
+    `fake Tool.Execute 应覆盖真实执行 ~10ms，实测 ${fakeSpan!.duration_ms}ms`
+  );
+}
+
 async function main(): Promise<void> {
   let failed = 0;
   for (const c of cases) {
@@ -517,7 +593,19 @@ async function main(): Promise<void> {
       console.error(`❌ ${c.name}\n   ${msg}`);
     }
   }
-  console.log(`\n=== ${cases.length - failed}/${cases.length} 用例通过 ===`);
+
+  // Trace 集成用例（教程第 18 章）
+  try {
+    await runTraceIntegrationCase();
+    console.log(`✅ #T1 Trace 集成 - AgentEngine 注入 Tracer 后产出预期 Span 树`);
+  } catch (e) {
+    failed++;
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`❌ #T1 Trace 集成\n   ${msg}`);
+  }
+
+  const total = cases.length + 1;
+  console.log(`\n=== ${total - failed}/${total} 用例通过 ===`);
   if (failed > 0) process.exit(1);
 }
 

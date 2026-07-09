@@ -1,4 +1,5 @@
 // engine.ts
+import { performance } from 'node:perf_hooks';
 import { LLMProvider } from '../llm/llm-provider.js';
 import { Registry } from '../tools/registry.js';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
@@ -8,6 +9,7 @@ import { PromptComposer } from '../context/composer.ts';
 import { Compactor } from '../context/compactor.ts';
 import { RecoveryManager } from '../context/recovery.ts';
 import { ReminderInjector } from './reminder.ts';
+import { Tracer } from './trace.ts';
 import { Session } from './session.ts';
 import { Reporter } from './terminal_reporter.ts';
 
@@ -60,6 +62,12 @@ export class AgentEngine {
 
   private enableThinking: boolean = true; // 【新增】慢思考模式开关
 
+  /**
+   * Trace 引擎：默认关闭（零运行时开销），需要时通过构造参数或命令行开关启用。
+   * 启用后会在 run() 结束时打印 JSON 决策树。
+   */
+  private readonly tracer: Tracer;
+
   constructor(
     provider: LLMProvider,
     registry: Registry,
@@ -68,7 +76,8 @@ export class AgentEngine {
     compactor?: Compactor,
     planMode?: boolean,
     recovery?: RecoveryManager,
-    reminder?: ReminderInjector
+    reminder?: ReminderInjector,
+    tracer?: Tracer
   ) {
     this.provider = provider;
     this.registry = registry;
@@ -80,6 +89,7 @@ export class AgentEngine {
     this.compactor = compactor ?? new Compactor(DEFAULT_COMPACTOR_MAX_CHARS, DEFAULT_COMPACTOR_RETAIN_LAST_MSGS);
     this.recovery = recovery ?? new RecoveryManager();
     this.reminder = reminder ?? new ReminderInjector();
+    this.tracer = tracer ?? new Tracer(false);
   }
 
   /**
@@ -137,6 +147,12 @@ export class AgentEngine {
     // 2. 把本轮用户指令落库到 Session，作为新一轮对话的起点
     session.append({ role: Role.User, content: userPrompt });
 
+    // Trace 根 span：整次 run 的边界
+    this.tracer.startRoot('Agent.Run', {
+      SessionID: session.id,
+      WorkDir: this.workDir,
+    });
+
     let turnCount = 0;
 
     // 3. The Main Loop: 心跳开始 (Two-Stage ReAct 循环)
@@ -150,10 +166,16 @@ export class AgentEngine {
       turnCount++;
       logger.info(`========== [Turn ${turnCount}] 开始 ==========`);
 
+      // Trace Turn span：每个 turn 自成一个 span，attribute 记录上下文消息条数
+      this.tracer.start(`Turn-${turnCount}`, {
+        context_message_count: session.snapshot().length,
+      });
+
       // 轮数熔断：超过 MAX_TURNS 强制退出，输出空 reply 让 reporter 渲染结束语
       if (turnCount > MAX_TURNS) {
         logger.warn(`已达到最大轮数 ${MAX_TURNS}，强制退出循环`);
         r.onMessage(`已达最大轮数 ${MAX_TURNS}，任务未完成。`);
+        this.tracer.end(); // Turn-N
         break;
       }
 
@@ -209,6 +231,9 @@ export class AgentEngine {
       // 确保 Phase 2 看到 Phase 1 的 thinking trace 并同样享受压缩保护。
       const actionContext = this.buildCompactedContext(session, systemMessage);
 
+      // Trace LLM.Action span：标记本次大模型调用的耗时边界
+      this.tracer.start('LLM.Action');
+
       // 模型会顺着自己的逻辑，结合恢复的 availableTools 发起精准的工具调用。
       let actionResp: Message;
       try {
@@ -224,6 +249,8 @@ export class AgentEngine {
         );
       }
 
+      this.tracer.end(); // LLM.Action
+
       session.append(actionResp);
 
       if (actionResp.content) {
@@ -238,6 +265,7 @@ export class AgentEngine {
         logger.info('任务完成，退出循环。');
         // 把模型的"最终对外回复"经由 reporter 渲染给用户
         r.onMessage(actionResp.content);
+        this.tracer.end(); // Turn-N
         break;
       }
 
@@ -245,12 +273,53 @@ export class AgentEngine {
 
       // Fork: 一次性把所有工具调用挂到事件循环上并发推进。
       // 上一章的"独立性假设"在此兑现 —— 同一 Turn 内的 tool_calls 视为互相独立，无脑并行。
+      // Trace：每个工具调用的 start/end 时间用 performance.now() 单独捕获，
+      // 派发完成后通过 addSpan 直接追加到 Turn span 下（避免栈式 end 在并行场景下 LIFO 误关）。
+      const dispatchTimes = actionResp.tool_calls.map(() => {
+        const now = performance.now();
+        return { startMs: now, startDate: new Date() };
+      });
+
       const settled = await Promise.allSettled(
-        actionResp.tool_calls.map((tc) => {
+        actionResp.tool_calls.map((tc, i) => {
           logger.info(`  -> 🛠️ 派发: ${tc.name}, 参数: ${JSON.stringify(tc.arguments)}`);
           // 派发前先通知 reporter；参数序列化为字符串供展示
           r.onToolCall(tc.name, JSON.stringify(tc.arguments));
-          return this.registry.execute(tc, signal);
+          return (async () => {
+            try {
+              const result = await this.registry.execute(tc, signal);
+              const endMs = performance.now();
+              this.tracer.addSpan(
+                'Tool.Execute',
+                dispatchTimes[i].startMs,
+                endMs,
+                dispatchTimes[i].startDate,
+                new Date(),
+                {
+                  tool_name: tc.name,
+                  arguments: JSON.stringify(tc.arguments),
+                  output_preview: result.output,
+                }
+              );
+              return result;
+            } catch (e) {
+              const endMs = performance.now();
+              const errMsg = e instanceof Error ? e.message : String(e);
+              this.tracer.addSpan(
+                'Tool.Execute',
+                dispatchTimes[i].startMs,
+                endMs,
+                dispatchTimes[i].startDate,
+                new Date(),
+                {
+                  tool_name: tc.name,
+                  arguments: JSON.stringify(tc.arguments),
+                  output_preview: `Tool execution rejected: ${errMsg}`,
+                }
+              );
+              throw e;
+            }
+          })();
         })
       );
 
@@ -318,7 +387,19 @@ export class AgentEngine {
         session.append(doomLoopReminder);
       }
 
+      // 关闭当前 Turn span；下一轮 while 循环开头会 start 新 span
+      this.tracer.end(); // Turn-N
+
       // 循环回到开头，模型将带着新加入的 Observation 继续它的下一轮思考...
+    }
+
+    // 关闭根 span 并打印决策树
+    this.tracer.end(); // Agent.Run
+    if (this.tracer.isEnabled()) {
+      const report = this.tracer.report();
+      if (report) {
+        logger.info(`[Trace] 决策树 JSON:\n${JSON.stringify(report, null, 2)}`);
+      }
     }
   }
 }
