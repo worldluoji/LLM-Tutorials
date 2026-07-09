@@ -162,12 +162,17 @@ export class MiniMaxProvider implements LLMProvider {
           }>;
         };
       }>;
+      /** OpenAI 兼容字段：Token 用量，供 CostTracker 等可观测层消费。 */
+      usage?: {
+        prompt_tokens: number;
+        completion_tokens: number;
+      };
     };
 
     logger.debug(`[MiniMax] 响应体: ${JSON.stringify(data, null, 2)}`);
 
     // 5. 反向解析：将 MiniMax 响应转换为内部 Message
-    return this.parseResponse(data);
+    return this.parseResponse(data, data.usage);
   }
 
   private translateMessages(messages: Message[]): Array<Record<string, unknown>> {
@@ -246,6 +251,10 @@ export class MiniMaxProvider implements LLMProvider {
           }>;
         };
       }>;
+    },
+    usage?: {
+      prompt_tokens: number;
+      completion_tokens: number;
     }
   ): Message {
     const choice = data.choices[0];
@@ -257,6 +266,14 @@ export class MiniMaxProvider implements LLMProvider {
       role: Role.Assistant,
       content: choice.message.content || '',
     };
+
+    // 透传 Token 用量，供 CostTracker 计算成本；缺失时静默留空。
+    if (usage) {
+      resultMsg.usage = {
+        prompt_tokens: usage.prompt_tokens,
+        completion_tokens: usage.completion_tokens,
+      };
+    }
 
     if (choice.message.tool_calls && choice.message.tool_calls.length > 0) {
       resultMsg.tool_calls = choice.message.tool_calls.map((tc) => ({

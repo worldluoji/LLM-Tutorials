@@ -112,6 +112,11 @@ const testConfigs: TestConfig[] = [
     command: 'tsx test/engine/test.reminder.ts',
     description: 'Doom Loop ReminderInjector 单元测试',
   },
+  {
+    name: 'tracker',
+    command: 'tsx test/llm/test.tracker.ts',
+    description: 'CostTracker 装饰器单元测试',
+  },
 ];
 
 // 检查环境变量

@@ -19,12 +19,42 @@ export class Session {
   public updatedAt: Date;
   private history: Message[];
 
+  /**
+   * 累计 Token 用量与成本快照：仅由 CostTracker 等可观测层在每次 API 返回后写入。
+   * 字段名沿用 Go 版 TotalCostCNY（保持生态对齐），数值单位与 PricingModel 一致（USD）。
+   */
+  public promptTokens: number = 0;
+  public completionTokens: number = 0;
+  public totalCostCNY: number = 0;
+
   constructor(id: string, workDir: string) {
     this.id = id;
     this.workDir = workDir;
     this.createdAt = new Date();
     this.updatedAt = this.createdAt;
     this.history = [];
+  }
+
+  /**
+   * 累加一次 API 调用的 Token 与成本。
+   * 字段单位与 PricingModel 对齐（USD），与 Go 版 CostTracker.RecordUsage 行为一致。
+   */
+  recordUsage(promptTokens: number, completionTokens: number, cost: number): void {
+    this.promptTokens += promptTokens;
+    this.completionTokens += completionTokens;
+    this.totalCostCNY += cost;
+    this.updatedAt = new Date();
+  }
+
+  /**
+   * 获取当前会话的用量快照（只读视图）。
+   */
+  getUsage(): { promptTokens: number; completionTokens: number; totalCostCNY: number } {
+    return {
+      promptTokens: this.promptTokens,
+      completionTokens: this.completionTokens,
+      totalCostCNY: this.totalCostCNY,
+    };
   }
 
   /**

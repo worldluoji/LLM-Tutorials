@@ -25,6 +25,20 @@ export interface Message {
   tool_calls?: ToolCall[];
   /** 如果这是对某个工具调用的响应，此字段必须填写，以告知模型上下文的关联性 */
   tool_call_id?: string;
+  /**
+   * Token 用量：仅由 Provider 在 Assistant 响应时填入，供 CostTracker 等可观测层读取。
+   * 历史消息 / User / System / 工具结果均不应设置此字段。
+   */
+  usage?: Usage;
+}
+
+/**
+ * Usage 描述一次大模型推理的 Token 消耗。
+ * 字段名与 OpenAI 兼容 API 保持一致（snake_case），便于 Provider 直接透传。
+ */
+export interface Usage {
+  prompt_tokens: number;
+  completion_tokens: number;
 }
 
 /**

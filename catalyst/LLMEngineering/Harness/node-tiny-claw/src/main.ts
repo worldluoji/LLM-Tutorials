@@ -17,6 +17,7 @@ import { AgentEngine } from './engine/loop.ts';
 import { newTerminalReporter } from './engine/terminal_reporter.ts';
 import { globalSessionMgr } from './engine/session.ts';
 import { MiniMaxProvider } from './llm/minimax-provider.ts';
+import { CostTracker } from './llm/tracker.ts';
 import { RegistryImpl } from './tools/registry.ts';
 import { BashTool } from './tools/bash.ts';
 import { ReadFileTool } from './tools/read-file.ts';
@@ -33,8 +34,11 @@ async function main(): Promise<void> {
   // 2. 工作区路径：cwd/workspace
   const workDir = path.join(process.cwd(), 'workspace');
 
-  // 3. 实例化 LLM Provider
-  const llmProvider = new MiniMaxProvider('MiniMax-M3');
+  // 3. 实例化 LLM Provider + 用 CostTracker 装饰（透明埋点）
+  const modelName = 'MiniMax-M3';
+  const rawProvider = new MiniMaxProvider(modelName);
+  const session = globalSessionMgr.getOrCreate('cli-default', workDir);
+  const llmProvider = new CostTracker(rawProvider, modelName, session);
 
   // 4. 工具注册表 + 注册 4 个工具
   const registry = new RegistryImpl();
@@ -46,8 +50,6 @@ async function main(): Promise<void> {
   // 5. 引擎 + 终端 reporter + Session
   const eng = new AgentEngine(llmProvider, registry, workDir, true);
   const reporter = newTerminalReporter();
-  // CLI 默认一个固定 session id；多终端隔离可改为目录哈希或终端 PID。
-  const session = globalSessionMgr.getOrCreate('cli-default', workDir);
 
   const prompt = `
     我需要在当前目录下新建一个 ping.ts，提供一个简单的 http ping 接口。
