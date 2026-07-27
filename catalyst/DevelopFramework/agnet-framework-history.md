@@ -43,3 +43,8 @@ Claude Code、OpenClaw（其底层 Agent 是 Pi-Mono）被公认为是在 Harnes
 
 ## Agent开发本质
 对于“Agent 开发本质上是在开发什么？”这个问题已经有了清晰的答案。核心就在于，我们应当将主要精力聚焦于业务开发本身，例如提示词（Prompt）、工具（Tools）以及 Skills 的打磨与优化。而当我们的 Agent 系统表现出不稳定性时，再去针对性地运用工程化手段对其进行调优。
+
+---
+
+## 配套代码
+https://github.com/worldluoji/harness-cli-learning
