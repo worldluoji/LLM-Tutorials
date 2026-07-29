@@ -231,6 +231,23 @@ wheels = [
 ]
 
 [[package]]
+name = "claude-agent-sdk"
+version = "0.1.62"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "mcp" },
+]
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/31/bf/1b52413fe768aaba80abdb7f3c38946493ac48c4f4075d2b2946a7d11c7c/claude_agent_sdk-0.1.62.tar.gz", hash = "sha256:29b5a1f7719b1cc6aa23c16ff5691bc1d9b9390f7601e4a5f80d99d6b2768772", size = 130408, upload-time = "2026-04-17T19:53:31.535Z" }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/22/5c/a30030812c632dca2fee03d6c6d5a341fb7499ba18e345168afb6d0bfe5e/claude_agent_sdk-0.1.62-py3-none-macosx_11_0_arm64.whl", hash = "sha256:52d30f3bb0ca9ff506b3f198b9ceed880496542494c7b7bee847f853189c1e96", size = 60286356, upload-time = "2026-04-17T19:53:34.828Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/0c/2d/b8984f995c9a05a5858181aeaf9609ee1d9e15f8a0508f5549cad7fab260/claude_agent_sdk-0.1.62-py3-none-macosx_11_0_x86_64.whl", hash = "sha256:fe9fbd24bcaa9c5948e446bc12cde7bf49312fcbad405f2043f7198f76f812ce", size = 62101198, upload-time = "2026-04-17T19:53:38.429Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/ed/36/87ce9bceb7b3d3ea34039d1583177ed86c019f5d946b154aef83397d95a7/claude_agent_sdk-0.1.62-py3-none-manylinux_2_17_aarch64.whl", hash = "sha256:7a774cbe82a28fddf10310cac0ac7da0228ad801e6553004eeefbf82004532a3", size = 73535395, upload-time = "2026-04-17T19:53:42.366Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/02/d5/36a0d44452921025332a19a4a494d8cd91f3fa80d5e0b76116c311584757/claude_agent_sdk-0.1.62-py3-none-manylinux_2_17_x86_64.whl", hash = "sha256:2afefa84a46b34f1611a470800fe1ac92d7c18b69787622a66616c9f1cca8a61", size = 73684879, upload-time = "2026-04-17T19:53:46.558Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/45/c2/5ab47a17ad4e8b02febadc7cecc2e45286611158de261743d1a8050e3625/claude_agent_sdk-0.1.62-py3-none-win_amd64.whl", hash = "sha256:84f567923e3e075c1bb2bbf3764f17cace12c51ee3b0d2cc3a876bec791ae407", size = 75827827, upload-time = "2026-04-17T19:53:50.62Z" },
+]
+
+[[package]]
 name = "click"
 version = "8.4.2"
 source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
@@ -322,12 +339,14 @@ name = "demo"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "claude-agent-sdk" },
     { name = "mcp" },
     { name = "smolagents", extra = ["mcp", "openai", "toolkit"] },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "claude-agent-sdk", specifier = "==0.1.62" },
     { name = "mcp", specifier = ">=1.28.1" },
     { name = "smolagents", extras = ["mcp", "openai", "toolkit"], specifier = ">=1.26.0" },
 ]
