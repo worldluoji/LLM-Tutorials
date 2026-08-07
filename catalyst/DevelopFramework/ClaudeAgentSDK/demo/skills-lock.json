@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "skills": {
+    "a-share-risk-alert": {
+      "source": "clawhub.ai",
+      "sourceUrl": "https://clawhub.ai/yzswk/skills/a-share-risk-alert",
+      "sourceType": "well-known",
+      "computedHash": "bad4ca3d646828baedd0d7ea8dbb62e002ed352eb977899b9c1cb99e5c51387a",
+      "wellKnownDigest": "sha256:6fb5cbbef0f926b3fbcbd8b1b98cab80d1d2105a1ce6856bd62d7df8a3203b39"
+    },
+    "financial-report-analyzer": {
+      "source": "clawhub.ai",
+      "sourceUrl": "https://clawhub.ai/soul-code/skills/financial-report-analyzer",
+      "sourceType": "well-known",
+      "computedHash": "b365e849edafa9cea6e56f22bfb8f79005bba346166c866cf1a68ec89cc88b69",
+      "wellKnownDigest": "sha256:98d8d92727c6f2ad0299bdc6e9bf92ba90748c9262094c7bfe2d65781d06062d"
+    }
+  }
+}
