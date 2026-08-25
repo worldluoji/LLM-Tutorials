@@ -12,7 +12,7 @@ export async function reviewWithSkill(
 
   for (const chunk of chunks) {
     const prompt =
-      `/skill:contract-risk-review-claw 请使用 JSON 输出模式审查以下合同第 ${chunk.index + 1}/${chunks.length} 部分。\n` +
+      `./claude/skill/contract-risk-review 请使用 JSON 输出模式审查以下合同第 ${chunk.index + 1}/${chunks.length} 部分。\n` +
       `只返回 JSON 数组，不要任何 markdown 报告、解释或代码块。\n` +
       `每个元素包含 level（high/medium/low）、type、clause、originalText、suggestion。\n` +
       `如果没有风险，返回空数组 []。\n\n` +
