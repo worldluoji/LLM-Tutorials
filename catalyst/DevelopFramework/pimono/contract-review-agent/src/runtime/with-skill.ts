@@ -2,18 +2,24 @@ import { createAgentSession, SessionManager } from "@earendil-works/pi-coding-ag
 import { builtinModels } from '@earendil-works/pi-ai/providers/all';
 import { config } from "dotenv";
 import path from "node:path";
+import { promises as fs } from "node:fs";
 config({ path: ".env.local", override: true });
 
 import { parseContractTool } from "../tools/contract-parse-tool.js";
 // import { classifyContractTool } from "../tools/contract-classify-tool.js"; 不使用该工具，skill识别
 
+import { reviewWithSkill } from "../review/skill-chunked-review.js";
+
 // A Models collection with every built-in provider registered
 const models = builtinModels();
+// models.getModel("minimax-cn", "MiniMax-M3")
 
 async function main() {
   const cwd = process.cwd();
   const agentDir = path.join(cwd, ".pi-agent");
   const sessionDir = path.join(cwd, ".pi-sessions");
+  const filePath = process.argv[2] ?? "simple-contract.txt";
+  const text = await fs.readFile(filePath, "utf-8");
 
   const { session } = await createAgentSession({
     model: models.getModel("minimax-cn", "MiniMax-M3"),
@@ -39,11 +45,18 @@ async function main() {
     }
   });
 
-  await session.prompt(
-    "请按以下步骤审查 simple-contract.txt：" +      
-    "1. 使用 contract-classify-tool 对合同进行分类；" +      
-    "2. 基于分类结果，识别该类型合同的高风险条款并给出修改建议。"
-  );
+  const result = await reviewWithSkill(session, text);
+
+  console.log("\n\n=== 审查结果 ===");
+  console.log(`总体评分: ${result.score}`);
+  console.log(`风险概览: ${result.summary}`);
+  console.log(`风险总数: ${result.risks.length}`);
+
+  for (const risk of result.risks.slice(0, 10)) {
+    console.log(`\n[${risk.level}] ${risk.type} — ${risk.clause}`);
+    console.log(`原文: ${risk.originalText.slice(0, 80)}...`);
+    console.log(`建议: ${risk.suggestion.slice(0, 100)}...`);
+  }
 }
 
 main().catch((err) => {  
