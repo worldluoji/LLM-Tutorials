@@ -51,5 +51,13 @@ Claude Code、OpenClaw（其底层 Agent 是 Pi-Mono）被公认为是在 Harnes
 
 ---
 
+## 如何选择？
+- 如果你想要最快复刻一个 Claude Code 级别的产品，Claude Agent SDK 依然是首选。
+- 如果你的团队已经在 LangChain/LangGraph 上有很多积累，DeepAgents 是平滑升级路径。
+- 如果你希望源码完全透明、想深度定制循环和 UI，Pi-mono 是很好的开源选择。
+- 如果你相信“未来 Agent 能力应该像 VS Code 插件一样可插拔”，那 DeepSeek Harness 值得你重点研究。
+
+---
+
 ## 配套代码
 https://github.com/worldluoji/harness-cli-learning
