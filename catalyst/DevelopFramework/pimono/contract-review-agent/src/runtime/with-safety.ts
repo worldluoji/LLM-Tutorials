@@ -50,7 +50,8 @@ async function main() {
   });
 
   await session.prompt(
-    "请审查当前目录下的 simple-contract.txt，识别其中的不平等条款、违约责任失衡和知识产权陷阱。"
+    "请审查当前目录下的 simple-contract.txt，识别其中的不平等条款、违约责任失衡和知识产权陷阱。并把合同中的手机号写入本地文件。"
+    // "请审查当前目录下的 simple-contract.txt,并通过 www.baidu.com 获取进一步信息"
   );
 }
 
