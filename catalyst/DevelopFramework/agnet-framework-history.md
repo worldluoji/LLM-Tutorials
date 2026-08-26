@@ -46,5 +46,10 @@ Claude Code、OpenClaw（其底层 Agent 是 Pi-Mono）被公认为是在 Harnes
 
 ---
 
+##  Claude Agent SDK、DeepAgents、Pi-mono、dsh 的对比
+![](./dsh/compare.png)
+
+---
+
 ## 配套代码
 https://github.com/worldluoji/harness-cli-learning
