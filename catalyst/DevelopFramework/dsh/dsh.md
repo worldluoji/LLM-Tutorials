@@ -92,4 +92,89 @@ dsh plugin --profile web add dsh-find-plugin
 dsh plugin --profile web remove dshmarket
 ```
 
-### 3. 插件开发
+### 3. 本地插件开发
+-> dsh/scratch-plugin/src/greet-plugin.ts
+
+关键点：
+- inject: ['tools'] 声明依赖，框架会等工具注册表就绪再加载本插件。
+- defineTool 根据 parameters 推导并校验参数类型。
+- execute 返回规范值，output.render 把它转成模型能看到的文本内容。
+
+这份代码的 API 写法与官方内置插件（如 @deepseek-ai/dsh-tool-bash）完全一致，本身没有问题。但有两个坑必须在动手前知道。
+
+第一个坑就是依赖解析位置。插件文件里的 @deepseek-ai/* 导入，是从插件文件所在目录向上查找 node_modules 的。在 deepseek-harness 仓库里开发没问题（仓库根目录就有 node_modules）；但如果你用的是全局安装的 dsh（npx @deepseek-ai/dsh 或全局 npm 安装），把 scratch-plugin 放在任意目录启动会直接报 ERR_MODULE_NOT_FOUND: Cannot find package '@deepseek-ai/dsh-tools'。
+
+解决办法就是把插件目录放进 profile 目录下，让 Node 沿目录向上找到 profile 自己的 node_modules:
+```bash
+mkdir -p ~/.dsh/profiles/web/scratch-plugin/src
+# 把 greet-plugin.ts 放到 ~/.dsh/profiles/web/scratch-plugin/src/ 下
+```
+另外 ，建议补一个 package.json 声明 "type": "module"。没有它的话，Node 需要把 .ts 文件重新解析为 ES 模块（会报 MODULE_TYPELESS_PACKAGE_JSON 警告并产生性能开销）
+
+
+然后用 patch 方式本地加载插件，创建 scratch-plugin/cordis.yml,注意 name 必须是绝对路径，然后启动。
+
+仓库开发模式：
+```bash
+pnpm dsh web --patch ./scratch-plugin/cordis.yml
+```
+
+全局安装模式（web 就是 --profile web 的别名，--patch 可重复使用）：
+```bash
+dsh --profile web --patch /home/you/scratch-plugin/cordis.yml
+```
+
+验证：在 Web UI 里输入 Use the greet tool to greet Ada.
+
+Agent 就会调用 greet，并收到 Hello, Ada!。
+
+### 4. 可安装的 bundle
+如果想把插件分享给别人，需要把它打包成组合包。目录结构如下：
+```
+hello-plugin/
+├── package.json       # 声明 dsh.bundle
+├── cordis.patch.yml   # 配置层
+└── index.js           # 插件入口
+```
+
+-> dsh/hello-plugin
+
+index.js（注意：bundle 应应该把 greet 工具真正带进来，而不是只打一行日志——原版的 console.log 版 bundle 分享出去后，别人装上根本拿不到 greet 工具）
+
+安装到 profile：
+```bash
+dsh plugin --profile demo add ./hello-plugin
+```
+
+之后就可以用：
+```bash
+dsh --profile demo
+```
+
+来启动一个包含你插件的 Agent。
+
+
+**三个踩坑点**
+
+第一，本地目录安装是符号链接，bundle 必须自带依赖。dsh plugin add ./hello-plugin 会把目录以 link: 形式装进 profile，并自动把包追加到 dsh.profile.bundles 列表（不需要手改 manifest）。但 Node 解析符号链接时会回到插件的真实路径去解析 @deepseek-ai/* 导入，默认会 ERR_MODULE_NOT_FOUND。
+
+解决办法是让 bundle 自带 node_modules（这也是发布到 npm 时 dependencies 的正确用法）：
+```bash
+cd hello-plugin
+pnpm add @deepseek-ai/dsh-tools@^0.1.0-rc.6
+```
+
+第二，demo profile 只有 base 层、没有 Web/headless 应用外壳，dsh --profile demo 会加载插件后退出，适合验证“插件能装上、能加载”，但不适合交互。要在 Web GUI 里真正用上 greet 工具，把 bundle 装进 web profile 并重启 dsh web 即可：
+```bash
+dsh plugin --profile web add ./hello-plugin
+```
+
+第三，npm 上 @deepseek-ai/dsh-headless 的 latest 标签目前指向一个依赖了未发布包的旧版本，直接装会报 404；需要时请显式指定版本，例如 dsh plugin --profile headless add @deepseek-ai/dsh-headless@^0.1.0-rc.6。示例二里的 dshmarket 等社区包不受影响。
+
+### 4. 直接基于 dsh 开发插件
+在 AI 时代，我们其实不需要了解这么多细节，也可以开发。比如，可以直接在 dsh 的 web 页面上，发送“帮我开发一个能在飞书中使用 dsh 的插件”，让 dsh 会去阅读 dsh 的源码，学习如何开发插件，然后自动帮你完成开发。
+
+---
+
+## 插件生态速览
+虽然 dsh 还是开发者预览阶段，但社区已经围绕它长出了相当丰富的插件生态。awesome-dsh-plugin 仓库整理了数百个插件。

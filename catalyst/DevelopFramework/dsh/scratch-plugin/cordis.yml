@@ -1,0 +1,3 @@
+- insert:
+    - id: greet
+      name: '/Users/luoji1/code/LLM-Tutorials/catalyst/DevelopFramework/dsh/scratch-plugin/src/greet-plugin.ts'
