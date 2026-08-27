@@ -48,3 +48,48 @@ dsh 把可替换能力抽象为 seam，每个 seam 包含三种角色：
 dsh 有一个很强的运行时不变量：模型可见即已记录。任何到达模型请求的内容，都必须能从会话日志重建。fork、恢复、transcript、遥测、持久化都派生自同一个事件流。
 
 这和 Claude Agent SDK 的五级上下文压缩、Pi-mono 的 AgentSession 持久化异曲同工，但 dsh 把它上升到了架构的第一性原则：日志不是副产物，而是运行时的核心数据源。
+
+---
+
+## 实战
+### 1. 快速启动带 Web 界面的 Agent
+dsh 的一键启动体验做得非常简洁。假设你已经安装了 Node.js，执行：
+```bash
+npx @deepseek-ai/dsh web
+```
+默认会启动 Web UI，地址是 http://127.0.0.1:3080。
+
+第一次进入后，配置好模型，选择好工作区就可以使用了。
+
+### 2. 为 Agent 安装插件
+假设我们想装一个社区整理的插件市场 dshmarket，只需要执行：
+```bash
+dsh plugin --profile web add dshmarket
+```
+这里有几个概念需要理解：
+- profile：位于 $DSH_HOME/profiles/<name></name> 下，描述一份可启动的组合。web 是默认的 profile 模板。
+- bundle（组合包）：一个 npm 包，通过 dsh.bundle manifest 声明自己贡献了一个配置层。
+- dsh plugin add：会把包安装进 profile，并自动把它追加到 dsh.profile.bundles 列表中。
+
+可以用 --dump-config 查看实际生效的插件树：
+```bash
+dsh --profile web --dump-config
+```
+
+如果想安装 GitHub 上的插件，可以直接用 git 地址：
+```bash
+dsh plugin --profile web add github:you/awesome-plugin#<sha></sha>
+```
+需要注意的是，git 安装拉取的是源码，因此包内需要包含 prepare 脚本来自行构建。pnpm ≥10 还会要求你在 profile 的 pnpm-workspace.yaml 里显式授权 allowBuilds，这一点在生产环境中要格外谨慎。
+
+如果想要实现对话式安装插件（类似在爱马仕（Hermes）、龙虾中通过对话安装技能的效果），需要你安装一下 dsh-find-plugin 插件，命令为：
+```bash
+dsh plugin --profile web add dsh-find-plugin
+```
+
+移除插件也很简单，使用下面的命令或者对话式要求移除均可。
+```bash
+dsh plugin --profile web remove dshmarket
+```
+
+### 3. 插件开发
