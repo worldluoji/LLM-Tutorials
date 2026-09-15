@@ -8,32 +8,34 @@
 
 ## 🔴 P0 - 严重（链接失效、关键事实错误、协议已变更）
 
-### 1. A2A 仓库地址已迁移
+> **状态**：P0 全部 9 项已于 2026-09-15 修复完成（commit `10f212f`）。
+
+### ✅ 1. A2A 仓库地址已迁移
 - **文件**：`catalyst/Agent/6. A2A.md`、`catalyst/Agent/a2a-demo/README.md`
 - **现状**：仓库仍引用 `google/A2A`，已 301 重定向到 `a2aproject/A2A`；文档站 `google.github.io/A2A` 已迁移
 - **动作**：批量替换为 `https://github.com/a2aproject/A2A`，同步更新 `references` 与 `agent-card.json` 路径（2025 下半年 `.well-known/agent.json` → `.well-known/agent-card.json`）
 
-### 2. OpenClaw 描述错误
+### ✅ 2. OpenClaw 描述错误
 - **文件**：`catalyst/OpenClaw/installation.md`、`catalyst/OpenClaw/skills.md`
 - **现状**：文中暗示 OpenClaw 与 Anaconda 有关（`anaconda.com/openclaw` 404），实际 OpenClaw Foundation 是独立非营利组织；`qclaw.qq.com` 是腾讯侧的封装
 - **动作**：澄清 OpenClaw 性质，删除"Anaconda"误导；明确 qclaw 仅为腾讯封装产品
 
-### 3. MCP 传输层描述过期
+### ✅ 3. MCP 传输层描述过期
 - **文件**：`catalyst/Agent/5. MCP的通信方式.md`、`catalyst/LLMEngineering/AIWorkflow/12. Claude Code with MCP.md`
 - **现状**：把 stdio 与 SSE 并列为当前推荐传输，但 2025 年 MCP 规范已将 **Streamable HTTP** 作为推荐传输，SSE 标记为 deprecated
 - **动作**：补 Streamable HTTP 章节，标注 SSE 已废弃并给出迁移路径
 
-### 4. A2A 协议版本（0.x → 1.0）
+### ✅ 4. A2A 协议版本（0.x → 1.0）
 - **文件**：`catalyst/Agent/6. A2A.md`、`a2a-demo/`
 - **现状**：示例使用 0.x 草案的 `sendSubscribe`/`subscribe`、`TaskState.input-required` 写法
 - **动作**：对齐 A2A v1.0（`submitted/working/completed/failed/cancelled/input-required`）
 
-### 5. ChatGPTNextWeb 仓库迁移
+### ✅ 5. ChatGPTNextWeb 仓库迁移
 - **文件**：`README.md:124-125`、`openai-learning/1. GPT.md:79-81`
 - **现状**：`ChatGPTNextWeb/ChatGPTNextWeb` 已迁移/重命名为 `ChatGPTNextWeb/NextChat`
 - **动作**：替换为新仓库地址
 
-### 6. openai-learning 大量 Python 代码使用 OpenAI 0.x 旧 API
+### ✅ 6. openai-learning 大量 Python 代码使用 OpenAI 0.x 旧 API
 - **文件**：
   - `1. hello/hello_openai.py`（`openai.Completion.create(engine=...)`）
   - `2. Embedding/a.get_dataset_embeddings.py / b.classifier_with_embedding.py / c.comment_analysis.py`（`from openai.embeddings_utils import ...`）
@@ -45,17 +47,17 @@
 - **现状**：openai>=1.0 移除所有顶层全局 API，无法直接运行
 - **动作**：批量迁移到 `from openai import OpenAI; client = OpenAI(); client.chat.completions.create(...)`；将 `text-embedding-ada-002` → `text-embedding-3-small`、模型改为 `gpt-4o-mini`/`gpt-4.1-mini`
 
-### 7. llama-index 旧 API（0.5.x）
+### ✅ 7. llama-index 旧 API（0.5.x）
 - **文件**：`openai-learning/8. llama-index/*.py`
 - **现状**：`GPTSimpleVectorIndex`、`GPTListIndex`、`LLMPredictor`、`ServiceContext` 等 0.5.x API 已删除
 - **动作**：迁移到 `VectorStoreIndex`、`SummaryIndex`、`LLM`、`Settings`（0.9+）；或加迁移说明
 
-### 8. Cursor 定价信息过时
+### ✅ 8. Cursor 定价信息过时
 - **文件**：`application/2. Coding with GPT.md:65`
 - **现状**："目前是20美金/月" 与当前 Cursor 实际定价（多档订阅）不符
 - **动作**：删除或更新为当前价格
 
-### 9. Civitai 平台现状描述
+### ✅ 9. Civitai 平台现状描述
 - **文件**：`drawing/Stable-Diffusion/Civitai and Hugging Face.md`、`drawing/Stable-Diffusion/1. WebUI.md`
 - **现状**：Civitai 经历 2024-2025 多次访问风波与商业转向，描述过于乐观
 - **动作**：补充现状说明
