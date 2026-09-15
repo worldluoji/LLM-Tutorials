@@ -1,15 +1,14 @@
-
-import openai
 import os
+from openai import OpenAI
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 class Conversation:
     '''
         prompt 作为 system 的 content, 代表我们对这个聊天机器人的指令
         num_of_round 代表每次向 ChatGPT 发起请求的时候，保留过去几轮会话
     '''
-    def __init__(self, prompt, num_of_round = 3):
+    def __init__(self, prompt, num_of_round=3):
         self.prompt = prompt
         self.num_of_round = num_of_round
         self.messages = []
@@ -24,8 +23,8 @@ class Conversation:
     def ask(self, question):
         try:
             self.messages.append({"role": "user", "content": question})
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+            completion = client.chat.completions.create(
+                model="gpt-4o-mini",
                 messages=self.messages,
                 temperature=0.5,
                 max_tokens=2048,
@@ -35,12 +34,11 @@ class Conversation:
             print(e)
             return e
 
-        message = response["choices"][0]["message"]["content"]
-        ## num_of_tokens = response['usage']['total_tokens']
+        message = completion.choices[0].message.content
         self.messages.append({"role": "assistant", "content": message})
 
         if len(self.messages) > self.num_of_round * 2 + 1:
-            del self.messages[1: 3] # Remove the first round conversation left. 每次进来都会新增一条message, 这里删除前一轮的, 下标为1,2
+            del self.messages[1: 3]  # Remove the first round conversation left
         return message
 
 

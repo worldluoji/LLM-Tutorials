@@ -1,9 +1,7 @@
-
-import openai
 import os
+from openai import OpenAI
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-COMPLETION_MODEL = "text-davinci-003"
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 prompts = """判断一下用户的评论情感上是正面的还是负面的
 评论：买的银色版真的很好看，一天就到了，晚上就开始拿起来完系统很丝滑流畅，做工扎实，手感细腻，很精致哦苹果一如既往的好品质
@@ -22,16 +20,17 @@ good_case = prompts + """
 """
 
 def get_response(prompt):
-    completions = openai.Completion.create (
-        engine=COMPLETION_MODEL,
-        prompt=prompt,
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "你是一个情感分类助手，只输出'正面'或'负面'。"},
+            {"role": "user", "content": prompt},
+        ],
         max_tokens=512,
         n=1,
-        stop=None,
-        temperature=0.0,        
+        temperature=0.0,
     )
-    message = completions.choices[0].text
-    return message
+    return completion.choices[0].message.content
 
 print("result:")
 print(get_response(good_case))

@@ -1,48 +1,52 @@
-import openai, os
-from llama_index import SimpleDirectoryReader, GPTSimpleVectorIndex
-from llama_index.readers.file.base import DEFAULT_FILE_EXTRACTOR, ImageParser
-from llama_index.response.notebook_utils import display_response, display_image
-from llama_index.indices.query.query_transform.base import ImageOutputQueryTransform
+"""
+llama-index 0.9+ 迁移：
+- GPTSimpleVectorIndex → VectorStoreIndex
+- QuestionAnswerPrompt → PromptTemplate
+- verbose 参数改为在 QueryEngine 上设置 response_mode / streaming 等
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
+如需 OCR 解析图片，建议改用 LlamaParse（https://docs.llamaindex.ai/en/stable/llama_cloud/llama_parse/）。
+"""
+import os
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings, PromptTemplate
+from llama_index.llms.openai import OpenAI
 
-# 要能够索引图片，我们引入了 ImageParser 这个类，这个类背后，其实是一个基于 OCR 扫描的模型 Donut。它通过一个视觉的 Encoder 和一个文本的 Decoder，这样任何一个图片能够变成一个一段文本，然后我们再通过 OpenAI 的 Embedding 把这段文本变成了一个向量。
-image_parser = ImageParser(keep_image=True, parse_text=True)
+os.environ.setdefault("OPENAI_API_KEY", os.environ.get("OPENAI_API_KEY", ""))
+Settings.llm = OpenAI(model="gpt-4o-mini", temperature=0)
 
-file_extractor = DEFAULT_FILE_EXTRACTOR
-file_extractor.update(
-{
-    ".jpg": image_parser,
-    ".png": image_parser,
-    ".jpeg": image_parser,
-})
+TARGET_PATH = "./index_tyxs.json"
+
+if not os.path.exists(TARGET_PATH):
+    documents = SimpleDirectoryReader("./articles").load_data()
+    index = VectorStoreIndex.from_documents(documents)
+    index.storage_context.persist(persist_dir=TARGET_PATH)
+
+# 0.9+ 中使用 StorageContext.load / load_from_disk 读取
+from llama_index.core import StorageContext, load_index_from_storage
+
+storage_context = StorageContext.from_defaults(persist_dir=TARGET_PATH)
+index = load_index_from_storage(storage_context)
+
+query_engine = index.as_query_engine()
+response = query_engine.query("鲁迅先生在日本学习医学的老师是谁？")
+print(response)
+
+# verbose 已从 query() 移至 streaming/similarity_top_k 等参数；如需调试可打印 source_nodes
+response = query_engine.query("鲁迅先生是去哪里学的医学？")
+print(response)
+for node in response.source_nodes:
+    print(f"score={node.score:.4f} text={node.text[:120]}")
 
 
-# NOTE: we add filename as metadata for all documents
-filename_fn = lambda filename: {'file_name': filename}
-
-receipt_reader = SimpleDirectoryReader(
-    input_dir='./pics', 
-    file_extractor=file_extractor, 
-    file_metadata=filename_fn,
+# PromptTemplate 的等价实现
+DEFAULT_TEXT_QA_PROMPT_TMPL = (
+    "Context information is below. \n"
+    "---------------------\n"
+    "{context_str}"
+    "\n---------------------\n"
+    "Given the context information and not prior knowledge, "
+    "answer the question: {query_str}\n"
 )
-receipt_documents = receipt_reader.load_data()
+QA_PROMPT = PromptTemplate(DEFAULT_TEXT_QA_PROMPT_TMPL)
 
-
-receipts_index = GPTSimpleVectorIndex.from_documents(receipt_documents)
-receipts_response = receipts_index.query(
-    'When was the last time I went to McDonald\'s and how much did I spend. \
-    Also show me the receipt from my visit.',
-    query_transform=ImageOutputQueryTransform(width=400)
-)
-
-display_response(receipts_response)
-
-# 打印ImageParser解析出的图片内容
-print('*' * 13)
-output_image = image_parser.parse_file('./pics/100-receipt.jpg')
-print(output_image.text)
-
-
-# https://llamahub.ai/
+response = index.as_query_engine(text_qa_template=QA_PROMPT).query("鲁迅先生去哪里学的医学？")
+print(response)

@@ -4,21 +4,25 @@ OpenAI 发表了一个通用的语音识别模型 Whisper，还把对应的代�
 
 OpenAI 提供的 Whisper 的 API 非常简单，你只要调用一下 transcribe 函数，就能将音频文件转录成文字:
 ```
-import openai, os
+from openai import OpenAI
+import os
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-audio_file= open("./data/podcast_clip.mp3", "rb")
-transcript = openai.Audio.transcribe("whisper-1", audio_file)
-print(transcript['text'])
+audio_file = open("./data/podcast_clip.mp3", "rb")
+transcript = client.audio.transcriptions.create(model="whisper-1", file=audio_file)
+print(transcript.text)
 ```
 
 解决标点符号问题, 增加prompt即可：
 ```
-audio_file= open("./data/podcast_clip.mp3", "rb")
-transcript = openai.Audio.transcribe("whisper-1", audio_file, 
-                                     prompt="这是一段中文播客内容。")
-print(transcript['text'])
+audio_file = open("./data/podcast_clip.mp3", "rb")
+transcript = client.audio.transcriptions.create(
+    model="whisper-1",
+    file=audio_file,
+    prompt="这是一段中文播客内容。",
+)
+print(transcript.text)
 ```
 
 能够在音频内容的转录之前提供一段 Prompt，来引导模型更好地做语音识别，是 Whisper 模型的一大亮点。
@@ -28,10 +32,13 @@ Google 的 PALM 模型也给听错了，听成了 POM。对应的全称 Pathways
 而针对这些错漏，我们只要再修改一下 Prompt，它就能够转录正确了。
 
 ```
-audio_file= open("./data/podcast_clip.mp3", "rb")
-transcript = openai.Audio.transcribe("whisper-1", audio_file, 
-                                     prompt="这是一段Onboard播客，里面会聊到ChatGPT以及PALM这个大语言模型。这个模型也叫做Pathways Language Model。")
-print(transcript['text'])
+audio_file = open("./data/podcast_clip.mp3", "rb")
+transcript = client.audio.transcriptions.create(
+    model="whisper-1",
+    file=audio_file,
+    prompt="这是一段Onboard播客，里面会聊到ChatGPT以及PALM这个大语言模型。这个模型也叫做Pathways Language Model。",
+)
+print(transcript.text)
 ```
 
 Whisper 的模型是一个和 GPT 类似的模型，会用前面转录出来的文本去预测下一帧音频的内容。
@@ -47,12 +54,15 @@ Whisper 的模型是一个和 GPT 类似的模型，会用前面转录出来的�
 ## 转录的时候顺便翻译一下
 除了基本的音频转录功能，Whisper 的 API 还额外提供了一个叫做 translation 的接口。这个接口可以在转录音频的时候直接把语音翻译成英文。
 ```
-audio_file= open("./data/podcast_clip.mp3", "rb")
-translated_prompt="""This is a podcast discussing ChatGPT and PaLM model. 
+audio_file = open("./data/podcast_clip.mp3", "rb")
+translated_prompt = """This is a podcast discussing ChatGPT and PaLM model. 
 The full name of PaLM is Pathways Language Model."""
-transcript = openai.Audio.translate("whisper-1", audio_file, 
-                                    prompt=translated_prompt)
-print(transcript['text'])
+transcript = client.audio.translations.create(
+    model="whisper-1",
+    file=audio_file,
+    prompt=translated_prompt,
+)
+print(transcript.text)
 ```
 这个接口只能把内容翻译成英文，不能变成其他语言。所以对应的，Prompt 也必须换成英文。只能翻译成英文对我们来说稍微有些可惜了。如果能够指定翻译的语言，很多英文播客，我们就可以直接转录成中文来读了。现在我们要做到这一点，就不得不再花一份钱，让 ChatGPT 来帮我们翻译。
 

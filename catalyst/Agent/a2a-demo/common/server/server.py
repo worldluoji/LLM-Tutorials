@@ -44,7 +44,7 @@ class A2AServer:
         self.app = Starlette()
         self.app.add_route(self.endpoint, self._process_request, methods=["POST"])
         self.app.add_route(
-            "/.well-known/agent.json", self._get_agent_card, methods=["GET"]
+            "/.well-known/agent-card.json", self._get_agent_card, methods=["GET"]
         )
 
     def start(self):

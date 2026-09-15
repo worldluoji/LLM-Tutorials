@@ -1,31 +1,34 @@
-import pandas as pd
+import os
+from openai import OpenAI
 import numpy as np
 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, accuracy_score
-
-# load data
-datafile_path = "/Users/honorluo/Downloads/fine_food_reviews_with_embeddings_1k.csv"
-
-df = pd.read_csv(datafile_path)
-df["embedding"] = df.embedding.apply(eval).apply(np.array)  # convert string to array
-
-# split data into train and test
-X_train, X_test, y_train, y_test = train_test_split(
-    list(df.embedding.values), df.Score, test_size=0.2, random_state=42
-)
-
-# train random forest classifier
-clf = RandomForestClassifier(n_estimators=100)
-clf.fit(X_train, y_train)
-preds = clf.predict(X_test)
-probas = clf.predict_proba(X_test)
-
-report = classification_report(y_test, preds)
-print(report)
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+EMBEDDING_MODEL = "text-embedding-3-small"
 
 
-from openai.embeddings_utils import plot_multiclass_precision_recall
+def get_embedding(text, model=EMBEDDING_MODEL):
+    response = client.embeddings.create(model=model, input=text)
+    return np.array(response.data[0].embedding)
 
-plot_multiclass_precision_recall(probas, y_test, [1, 2, 3, 4, 5], clf)
+
+def cosine_similarity(a, b):
+    a = np.asarray(a, dtype=float)
+    b = np.asarray(b, dtype=float)
+    return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
+
+
+# 获取"好评"和"差评"的
+positive_review = get_embedding("好评")
+negative_review = get_embedding("差评")
+
+positive_example = get_embedding("买的银色版真的很好看，一天就到了，晚上就开始拿起来完系统很丝滑流畅，做工扎实，手感细腻，很精致哦苹果一如既往的好品质")
+negative_example = get_embedding("降价厉害，保价不合理，不推荐")
+
+def get_score(sample_embedding):
+  return cosine_similarity(sample_embedding, positive_review) - cosine_similarity(sample_embedding, negative_review)
+
+positive_score = get_score(positive_example)
+negative_score = get_score(negative_example)
+
+print("好评例子的评分 : %f" % (positive_score))
+print("差评例子的评分 : %f" % (negative_score))

@@ -4,11 +4,11 @@
 
 ## 一、最快捷安装步骤
 
+OpenClaw 是由 OpenClaw Foundation（独立的开源非营利组织）维护的项目，与 Anaconda 等商业发行版无关；请只信任 `openclaw.ai` 官方域名的脚本与文档。
+
 OpenClaw 推荐使用官方一键安装脚本，整个过程约需 5 分钟。
 
-也可以使用国内大厂提供的封装后的产品，比如qclaw: https://qclaw.qq.com/
-
-直接就能对接微信。使用qclaw后main的内容可以不看，直接下载安装即可。
+国内也有基于 OpenClaw 的封装产品，例如腾讯侧封装的 **qclaw**（https://qclaw.qq.com/），可直接对接微信。如果使用 qclaw，可以跳过本页 main 章节，直接下载安装其客户端即可，但功能与最新版本可能滞后于 OpenClaw 上游。
 
 ### 1. 环境准备
 - **Node.js 22+**：运行 `node -v` 检查版本，低于 22 需升级

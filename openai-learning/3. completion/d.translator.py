@@ -1,21 +1,21 @@
-import openai
-import tiktoken
 import os
+import tiktoken
+from openai import OpenAI
 
-openai.api_key = os.environ["OPENAI_API_KEY"]
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 def translate(text):
-    messages = []
-    messages.append( {"role": "system", "content": "你是一个翻译，把用户的话翻译成英文"})
-    messages.append( {"role": "user", "content": text})
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo", 
-        messages=messages, 
-        temperature=0.5, 
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "你是一个翻译，把用户的话翻译成英文"},
+            {"role": "user", "content": text},
+        ],
+        temperature=0.5,
         max_tokens=2048,
-        n=1
+        n=1,
     )
-    return response["choices"][0]["message"]["content"]
+    return completion.choices[0].message.content
 
 
 long_text = """
@@ -32,7 +32,7 @@ long_text = """
 chinese = long_text
 english = translate(chinese)
 
-encoding = tiktoken.get_encoding('p50k_base')
+encoding = tiktoken.get_encoding('o200k_base')
 num_of_tokens_in_chinese = len(encoding.encode(chinese))
 num_of_tokens_in_english = len(encoding.encode(english))
 

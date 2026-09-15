@@ -122,7 +122,7 @@ LLM-Tutorials/
 ## 工具与平台
 
 - **ChatGPT-Next-Web**：自建 GPT 类应用（含 Claude / DeepSeek / GPT-4 / Gemini Pro 支持）
-  → <https://github.com/ChatGPTNextWeb/ChatGPTNextWeb>
+  → <https://github.com/ChatGPTNextWeb/NextChat>
 - **前端 AI 工具**：[v0 AI](https://v0.dev/) · [Open UI](https://github.com/wandb/openui)
 - **编码插件**：通义灵码 · GitHub Copilot · DeepSeek
 

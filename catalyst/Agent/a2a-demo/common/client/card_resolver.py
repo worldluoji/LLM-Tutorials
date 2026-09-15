@@ -7,7 +7,7 @@ import json
 
 
 class A2ACardResolver:
-    def __init__(self, base_url, agent_card_path="/.well-known/agent.json"):
+    def __init__(self, base_url, agent_card_path="/.well-known/agent-card.json"):
         self.base_url = base_url.rstrip("/")
         self.agent_card_path = agent_card_path.lstrip("/")
 

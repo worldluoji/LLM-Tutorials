@@ -13,9 +13,8 @@ class TaskState(str, Enum):
     WORKING = "working"
     INPUT_REQUIRED = "input-required"
     COMPLETED = "completed"
-    CANCELED = "canceled"
+    CANCELLED = "cancelled"
     FAILED = "failed"
-    UNKNOWN = "unknown"
 
 
 class TextPart(BaseModel):
@@ -175,7 +174,7 @@ class SendTaskResponse(JSONRPCResponse):
 
 
 class SendTaskStreamingRequest(JSONRPCRequest):
-    method: Literal["tasks/sendSubscribe"] = "tasks/sendSubscribe"
+    method: Literal["message/stream"] = "message/stream"
     params: TaskSendParams
 
 
@@ -280,7 +279,7 @@ class TaskNotFoundError(JSONRPCError):
 
 class TaskNotCancelableError(JSONRPCError):
     code: int = -32002
-    message: str = "Task cannot be canceled"
+    message: str = "Task cannot be cancelled"
     data: None = None
 
 

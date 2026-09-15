@@ -1,42 +1,45 @@
-import os
+import numpy as np
 import pandas as pd
-import tiktoken
-import openai
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, precision_recall_curve, average_precision_score
+from sklearn.preprocessing import label_binarize
 
-from openai.embeddings_utils import get_embedding
+# load data
+datafile_path = "/Users/honorluo/Downloads/fine_food_reviews_with_embeddings_1k.csv"
 
-# embedding model parameters
-embedding_model = "text-embedding-ada-002"
-embedding_encoding = "cl100k_base"  # this the encoding for text-embedding-ada-002
-max_tokens = 8000  # the maximum for text-embedding-ada-002 is 8191 
+df = pd.read_csv(datafile_path)
+df["embedding"] = df.embedding.apply(eval).apply(np.array)  # convert string to array
 
-# load & inspect dataset. The data comes from https://www.kaggle.com/datasets/snap/amazon-fine-food-reviews
-input_datapath = "data/fine_food_reviews_1k.csv"  # to save space, we provide a pre-filtered dataset
-df = pd.read_csv(input_datapath, index_col=0)
-df = df[["Time", "ProductId", "UserId", "Score", "Summary", "Text"]]
-df = df.dropna()
-df["combined"] = (
-    "Title: " + df.Summary.str.strip() + "; Content: " + df.Text.str.strip()
+# split data into train and test
+X_train, X_test, y_train, y_test = train_test_split(
+    list(df.embedding.values), df.Score, test_size=0.2, random_state=42
 )
-df.head(2)
 
-# subsample to 1k most recent reviews and remove samples that are too long
-top_n = 1000
-df = df.sort_values("Time").tail(top_n * 2)  # first cut to first 2k entries, assuming less than half will be filtered out
-df.drop("Time", axis=1, inplace=True)
+# train random forest classifier
+clf = RandomForestClassifier(n_estimators=100)
+clf.fit(X_train, y_train)
+preds = clf.predict(X_test)
+probas = clf.predict_proba(X_test)
 
-encoding = tiktoken.get_encoding(embedding_encoding)
+report = classification_report(y_test, preds)
+print(report)
 
-# omit reviews that are too long to embed
-df["n_tokens"] = df.combined.apply(lambda x: len(encoding.encode(x)))
-df = df[df.n_tokens <= max_tokens].tail(top_n)
-len(df)
 
-# Ensure you have your API key set in your environment per the README: https://github.com/openai/openai-python#usage
-openai.api_key = os.getenv("OPENAI_API_KEY")
+def plot_multiclass_precision_recall(y_score, y_true, classes):
+    """Per-class P/R 曲线，替代 OpenAI 0.x 的 openai.embeddings_utils.plot_multiclass_precision_recall。"""
+    import matplotlib.pyplot as plt
 
-# Save to CSV for further useage. This may take a few minutes
-df["embedding"] = df.combined.apply(lambda x: get_embedding(x, engine=embedding_model))
-df.to_csv("data/fine_food_reviews_with_embeddings_1k.csv")
+    y_true_bin = label_binarize(y_true, classes=classes)
+    for i, cls in enumerate(classes):
+        precision, recall, _ = precision_recall_curve(y_true_bin[:, i], y_score[:, i])
+        ap = average_precision_score(y_true_bin[:, i], y_score[:, i])
+        plt.plot(recall, precision, label=f"Score {cls} (AP={ap:.2f})")
+    plt.xlabel("Recall")
+    plt.ylabel("Precision")
+    plt.title("Multiclass Precision-Recall")
+    plt.legend()
+    plt.show()
 
-# https://github.com/openai/openai-cookbook/blob/4c31db4987f82068b0942dc6b84bf71c1d714418/examples/Obtain_dataset.ipynb
+
+plot_multiclass_precision_recall(probas, y_test, [1, 2, 3, 4, 5])

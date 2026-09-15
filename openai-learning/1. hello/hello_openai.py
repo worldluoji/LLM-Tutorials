@@ -1,11 +1,7 @@
-
-import openai
 import os
+from openai import OpenAI
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-# COMPLETION_MODEL = "text-davinci-003" 该模型已废弃
-
-COMPLETION_MODEL = "gpt-3.5-turbo-instruct"
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 prompt = """
 Consideration proudct : 工厂现货PVC充气青蛙夜市地摊热卖充气玩具发光蛙儿童水上玩具
@@ -18,15 +14,16 @@ Output the result in json format with three properties called title, selling_poi
 """
 
 def get_response(prompt):
-    completions = openai.Completion.create (
-        engine=COMPLETION_MODEL,
-        prompt=prompt,
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt},
+        ],
         max_tokens=512,
         n=1,
-        stop=None,
-        temperature=0.0,        
+        temperature=0.0,
     )
-    message = completions.choices[0].text
-    return message
+    return completion.choices[0].message.content
 
-print(get_response(prompt)) 
+print(get_response(prompt))

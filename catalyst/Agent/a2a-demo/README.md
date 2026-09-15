@@ -12,7 +12,7 @@ uv run server.py
 ```
 测试是否启动成功
 ```shell
-curl localhost:10008/.well-known/agent.json       
+curl localhost:10008/.well-known/agent-card.json
 ```
 正常返回：
 ```json

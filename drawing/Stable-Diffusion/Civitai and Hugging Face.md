@@ -37,6 +37,8 @@ Civitai 下载的 Model 如何使用:
 
 https://github.com/civitai/civitai/wiki/How-to-use-models#fine-tuned-model-checkpoints-dreambooth-models
 
+> **平台现状提示（2024-2025）**：Civitai 在 2024 年遭遇支付通道收紧风波，2025 年又经历了商业化转型（推出 Civitai Generation 订阅生成服务、强化创作者分成等）。部分社区创作者已迁移到 Tensor.art 等替代平台；模型下载与访问在部分网络环境下需要登录。建议同时关注 Hugging Face 作为镜像/替代渠道。
+
 
 ---
 

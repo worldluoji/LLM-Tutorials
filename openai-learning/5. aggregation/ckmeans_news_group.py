@@ -1,7 +1,7 @@
-
+import os
 import numpy as np
 import pandas as pd
-import openai, os
+from openai import OpenAI
 from sklearn.cluster import KMeans
 from IPython.display import display
 
@@ -44,8 +44,8 @@ display(new_df)
 
 # 给分类取名
 items_per_cluster = 10
-COMPLETIONS_MODEL = "text-davinci-003"
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+COMPLETIONS_MODEL = "gpt-4o-mini"
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 for i in range(num_of_clusters):
     cluster_name = new_df[new_df.cluster == i].iloc[0].rank1
@@ -54,11 +54,16 @@ for i in range(num_of_clusters):
     content = "\n".join(
         embedding_df[embedding_df.cluster == i].text.sample(items_per_cluster, random_state=42).values
     )
-    response = openai.Completion.create(
+    response = client.chat.completions.create(
         model=COMPLETIONS_MODEL,
-        prompt=f'''我们想要给下面的内容，分组成有意义的类别，以便我们可以对其进行总结。请根据下面这些内容的共同点，总结一个50个字以内的新闻组的名称。比如 “PC硬件”\n\n内容:\n"""\n{content}\n"""新闻组名称：''',
+        messages=[
+            {
+                "role": "user",
+                "content": f"我们想要给下面的内容，分组成有意义的类别，以便我们可以对其进行总结。请根据下面这些内容的共同点，总结一个50个字以内的新闻组的名称。比如 “PC硬件”\n\n内容:\n\"\"\"\n{content}\n\"\"\"新闻组名称：",
+            }
+        ],
         temperature=0,
         max_tokens=100,
         top_p=1,
     )
-    print(response["choices"][0]["text"].replace("\n", ""))
+    print(response.choices[0].message.content.replace("\n", ""))
