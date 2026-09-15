@@ -1,0 +1,13 @@
+[project]
+name = "mcp-streamable-demo-server"
+version = "0.1.0"
+description = "Streamable HTTP MCP server demo"
+readme = "../README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.10.0",
+    "uvicorn>=0.30.0",
+]
+
+[tool.uv.sources]
+mcp = { index = "pypi" }
