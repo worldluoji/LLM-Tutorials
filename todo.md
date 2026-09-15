@@ -127,27 +127,29 @@
 
 ## 🟢 P2 - 轻微（拼写、可读性、风格）
 
-### 22. 拼写/格式错误
+> **状态**：P2 全部 6 项（22-27）于 2026-09-15 修复完成。
+
+### ✅ 22. 拼写/格式错误
 - `catalyst/DevelopFramework/pimono/2. contract parse and classsify.md`：文件名 `constract-parse-tool.ts` 少一个 n
 - `catalyst/DevelopFramework/ClaudeAgentSDK/1. Claude Agent SDK.md`、`agnet-framework-history.md`：`TpyeScript / TypeScirpt` 拼写错误
 - `application/travel-assitant/2. 配置MiniMax语音MCP.md`：`MiniMax`（应为 MiniMax）；指向 `modelscope.cn/mcp/servers/@MiniMax-AI/MiniMax-MCP` 等失效链接
 - `openai-learning/3. completion/completion.md:76`：锚点 `e.chang_text.py`（实际为 `e.change_text.py`）链接断裂
 - `application/2. Coding with GPT.md:2`：标题写"用GPT帮助写代码"，但实际讲 DeepSeek/Cursor/Claude Code，前后不一致
-- `openai-learning/2. platforms.md:7`：`Noteable123` 拼写异常（疑为 Noteable）
+- `openai-learning/2. platforms.md:7`：`Noteable123` 拼写异常（疑为 Noteable） — 文件已在 P0 整改时删除，no-op
 - `drawing/Stable-Diffusion/3. image2image.md:20`："迪斯尼" → "迪士尼"
 
-### 23. README 中描述与实际目录略有出入
+### ✅ 23. README 中描述与实际目录略有出入
 - **README.md:42**：`ClaudeAgentSDK/` 未提新增的 `OpenTelemetry.md`、`assets/`
 - **README.md:44**：`Deepagents/` 未提 `LangGraph/` 子目录
 - **README.md:45**：`Smolagents/` 未提 `mcp_server/`、`tools/`
 - **README.md:144**："2025+ 是 Harness 的年份" 已成 2026，应改为"2025-2026"
 
-### 24. README 中第三方链接需核实
+### ✅ 24. README 中第三方链接需核实
 - **README.md:113**：`DjangoPeng/openai-quickstart` 个人仓库，建议改 OpenAI Cookbook
 - **README.md:114**：飞书伪代码 Prompt 文档需加"可能失效"备注
 - **README.md:118**：`aishort.top` 个人维护站点需核实
 
-### 25. 代码风格/描述陈旧
+### ✅ 25. 代码风格/描述陈旧
 - `openai-learning/12. whisper/whisper.md:62`：whisper 定价（0.006 美元/分钟）已多次调整
 - `openai-learning/12. whisper/whisper.md:27`：提到 "Google PALM"（已被 Gemini 取代）
 - `openai-learning/13. visual chatgpt/visual chatgpt.md:19`：`TaskMatrix` 仓库已 archive
@@ -156,12 +158,12 @@
 - `catalyst/LLMEngineering/Harness/1. Harness是什么.md`：SWE-Agent 论文数据（3.97%→12.47%）是 GPT-4 时代
 - `catalyst/DevelopFramework/ClaudeAgentSDK/2. Skill.md`、`3. Multi-Agent.md`：clawhub.ai 与具体 skill 链接未验证
 
-### 26. qdrant-demo README 为空
+### ✅ 26. qdrant-demo README 为空
 - **文件**：`catalyst/Vector Store/qdrant/qdrant-demo/README.md`
 - **现状**：文件存在但内容为 0 字节
 - **动作**：补充 README 或在主 README 中移除该目录的引用
 
-### 27. stock-analysis 代码注释错乱
+### ✅ 27. stock-analysis 代码注释错乱
 - **文件**：`application/stock-analysis/get-stock-data-demo/get_stock_pre_build.py:13`
 - **动作**：修复注释错乱
 

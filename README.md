@@ -40,9 +40,9 @@ LLM-Tutorials/
   - 设计模式：`design-patterns/`（Pattern-Advance、反向五步法等）
   - MCP 实战：`mcp-hello/`、`mcp-prompt-demo/`、`mcp-resource-demo/`、`mcp-samling-demo/`、`mcp-server-node-demo/`、`mcp-tool-demo/`
 - **`DevelopFramework/`** — 主流 Agent 框架实战
-  - `ClaudeAgentSDK/` — Claude Agent SDK + Skill + Multi-Agent + Hooks（含 `demo/`）
-  - `Deepagents/` — Deepagents + LangGraph + LLM-Wiki 投研知识库（含 `demo/`、`data/`、`.claude/skills/`）
-  - `Smolagents/` — HuggingFace Smolagents（CodeAct / ToolCalling / MCP，含 `demo/`）
+  - `ClaudeAgentSDK/` — Claude Agent SDK + Skill + Multi-Agent + Hooks + OpenTelemetry + Session（含 `demo/`、`assets/`）
+  - `Deepagents/` — Deepagents + LangGraph + LLM-Wiki 投研知识库（含 `LangGraph/`、`demo/`、`data/`）
+  - `Smolagents/` — HuggingFace Smolagents（CodeAct / ToolCalling / MCP，含 `demo/`，`demo/` 内含 `mcp_server/`、`tools/`）
   - `pimono/` — Pi-mono（TypeScript 脚手架）合同审查 Agent 实战（4 章教程 + `contract-review-agent/`）
   - `dsh/` — 自研插件框架示例（`hello-plugin/`、`scratch-plugin/`）
 - **`LLMEngineering/`** — LLM 工程化与 Claude Code 工作流
@@ -110,12 +110,14 @@ LLM-Tutorials/
 - **分层设计**：创作长篇内容，先概览、再章节、最后补充细节（小说生成）
 - **编程思维**：把 Prompt 当编程语言，设计变量、模板与正文（用于评估模型输出质量）
 - **Few-Shot**：基于样例约束推理路径与输出样式
-- **Function Calling**：用工具调用优化 [Function Calling 示例](https://github.com/DjangoPeng/openai-quickstart/blob/main/openai_api/function_call.ipynb)
+- **Function Calling**：用工具调用优化 [OpenAI Cookbook — Function Calling 示例](https://cookbook.openai.com/examples/how_to_call_functions_with_chat_models)
 - **伪代码 Prompt**：参考 [伪代码提示词飞书文档](https://waytoagi.feishu.cn/wiki/MjUDwTbq9iUtBrkskPXcpfOHnPg)
   - 优点：精确控制逻辑、节省 token
   - 缺点：需要懂代码、直观性受损
+  - 备注：该飞书链接由社区维护，若 2026 年访问失效请以 waytoagi 最新版本为准
 
 推荐社区：[AI Short 提示词社区](https://www.aishort.top/)
+  - 备注：aishort.top 为个人维护站点，2026 年访问时若无法打开，可改用 [Anthropic Prompt Library](https://docs.anthropic.com/en/prompt-library/library) 或 OpenAI Cookbook 作为替代
 
 ---
 
@@ -141,7 +143,7 @@ LLM-Tutorials/
 
 ## 三步走：Agent → Skill → Harness
 
-> 2025+ 是 Harness 的年份。模型能力趋同后，工程化能力（如何把模型用好）才是真正的护城河；模型微调已不再是个人开发者的优先路径。
+> 2025-2026 是 Harness 的年份。模型能力趋同后，工程化能力（如何把模型用好）才是真正的护城河；模型微调已不再是个人开发者的优先路径。
 
 1. **Agent 开发** —— Prompt 工程 + API 调用 + Agent 概念（ReAct / 工具调用）+ MCP 协议 + 主流框架上手（ClaudeAgentSDK / Deepagents / Smolagents / Pi-mono）
 2. **Skill 开发** —— 把业务方法论沉淀为可复用的 Skill，让模型按 `description` 自行判断调用时机，业务规则与工程逻辑各居其位

@@ -28,7 +28,7 @@ print(transcript.text)
 能够在音频内容的转录之前提供一段 Prompt，来引导模型更好地做语音识别，是 Whisper 模型的一大亮点。
 如果你觉得音频里面会有很多专有名词，模型容易识别错，你就可以在 Prompt 里加上对应的专有名词。
 比如，在上面的内容转录里面，模型就把 ChatGPT 也听错了，变成了 ChatGBT。
-Google 的 PALM 模型也给听错了，听成了 POM。对应的全称 Pathways Language Model 也少了一个 s。
+Google 的 PaLM 模型（现已并入 Gemini 系列）也给听错了，听成了 POM。对应的全称 Pathways Language Model 也少了一个 s。
 而针对这些错漏，我们只要再修改一下 Prompt，它就能够转录正确了。
 
 ```
@@ -69,7 +69,7 @@ print(transcript.text)
 <br>
 
 ## 通过开源模型直接在本地转录
-通过 OpenAI 的 Whisper API 来转录音频是有成本的，目前的定价是 0.006 美元 / 分钟。
+通过 OpenAI 的 Whisper API 来转录音频是有成本的。0.006 美元 / 分钟为 2023 年的早期定价，2026 年实际价格请以 [OpenAI 官方定价页](https://openai.com/api/pricing/) 为准（按音频时长计费，并设有免费额度）。
 比如我们上面的 150 分钟的音频文件，只需要不到 1 美元，其实已经很便宜了。
 不过，如果你不想把对应的数据发送给 OpenAI，避免任何数据泄露的风险，你还有另外一个选择，那就是直接使用 OpenAI 开源出来的模型就好了。
 不过使用开源模型你还是需要一块 GPU。

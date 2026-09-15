@@ -73,7 +73,7 @@ Prompt 变成了一个数组，数组的每个元素都有 role 和 content 两�
 ## ChatCompletion examples
 1. 归纳总结： -> c.make_short.py
 2. 翻译: -> d.translator.py
-3. 文本改写: -> e.chang_text.py  text-davinci-003 这个模型有个特殊的功能，就是“插入文本”（Inserting Text）。某种意义上来说，你也可以通过这个功能来做文本改写。
+3. 文本改写: -> e.change_text.py  text-davinci-003 这个模型有个特殊的功能，就是“插入文本”（Inserting Text）。某种意义上来说，你也可以通过这个功能来做文本改写。
 4. Conversation -> f.conversation.py
 
 <br>

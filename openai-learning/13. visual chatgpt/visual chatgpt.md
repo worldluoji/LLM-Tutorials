@@ -17,6 +17,7 @@ Agent 接收到你的文本，就要判断自己应该使用哪一个 Tool，还
 
 
 Visual ChatGPT 的源代码只有一个文件 [visual_chatgpt.py](https://github.com/chenfei-wu/TaskMatrix/blob/main/visual_chatgpt.py)
+> 注：原 `chenfei-wu/TaskMatrix` 仓库已于 2024 年 archive。如需学习 Vision Tool 集成思路，可改读 [LangChain OpenAI Tools Agent 源码](https://github.com/langchain-ai/langchain) 或 `transformers` + `gradio` 的现代替代实现。
 
 整个文件从头到尾可以分成四个部分。
 - 一系列预先定义好的 ChatGPT 的 Prompt，以及一些会被调用的辅助函数。
