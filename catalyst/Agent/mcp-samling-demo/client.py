@@ -93,7 +93,7 @@ class FileSystemAssistantClient:
             
             # 调用LLM
             response = self.client.chat.completions.create(
-                model="deepseek-chat",
+                model="deepseek-flash",
                 messages=messages,
                 temperature=params.get("temperature", 0.7),
                 max_tokens=params.get("maxTokens", 1000)
@@ -102,7 +102,7 @@ class FileSystemAssistantClient:
             # 显示采样结果给用户
             print("\n采样结果：")
             sampling_result = {
-                "model": "deepseek-chat",
+                "model": "deepseek-flash",
                 "stopReason": "endTurn",
                 "role": "assistant",
                 "content": {
