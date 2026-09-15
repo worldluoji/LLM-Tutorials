@@ -57,6 +57,8 @@ Claude Code、OpenClaw（其底层 Agent 是 Pi-Mono）被公认为是在 Harnes
 - 如果你希望源码完全透明、想深度定制循环和 UI，Pi-mono 是很好的开源选择。
 - 如果你相信“未来 Agent 能力应该像 VS Code 插件一样可插拔”，那 DeepSeek Harness 值得你重点研究。
 
+> **Claude Agent SDK 版本说明**：当前 `ClaudeAgentSDK/1. Claude Agent SDK.md` 锁定的 `claude-agent-sdk==0.1.62` 是为兼容国产模型（避免调用工具时 400 bad request）的临时回退；上游 2026-09 已迭代到 0.3.x / 0.4.x。仅当确认国产模型厂商已跟进新 API 后，再按 `0.4 → 0.3 → 0.2 → 0.1.62` 的顺序回退验证。
+
 ---
 
 ## 配套代码

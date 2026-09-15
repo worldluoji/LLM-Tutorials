@@ -66,57 +66,59 @@
 
 ## 🟡 P1 - 中等（版本陈旧、需更新模型/SDK 推荐）
 
-### 11. Ollama 推荐模型过时
+> **状态**：P1 全部 10 项（11-20；21 已在 P0-4 处理）于 2026-09-15 修复完成。
+
+### ✅ 11. Ollama 推荐模型过时
 - **文件**：`catalyst/ollama/ollama.md`、`catalyst/ollama/实战1：本地部署7B模型辅助编码.md`
 - **现状**：`llama2`、`llama2-chinese`、`codellama:7b`（最近 commit 改为 `ornith-1.5:9b`）均非 2026 推荐；32B 量化模型在 16GB+ Mac 已可流畅运行
 - **动作**：推荐 `qwen2.5-coder:32b` / `qwen3-coder:30b` / `deepseek-coder-v2`；更新 num_ctx 默认值
 
-### 12. Claude Code 默认模型与实验开关
+### ✅ 12. Claude Code 默认模型与实验开关
 - **文件**：`catalyst/LLMEngineering/AIWorkflow/4. Claude Code installation.md`、`24. Agent Teams.md`
 - **现状**：默认模型 `claude-sonnet-4-5-20250929`、`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`、`claude mcp add --transport sse` 均为 2025 早期写法
 - **动作**：更新到 Claude 4.6/4.7 系列；核对 Agent Teams 当前开关名；`--transport` 默认 streamable-http
 
-### 13. Claude Agent SDK 版本锁定
+### ✅ 13. Claude Agent SDK 版本锁定
 - **文件**：`catalyst/DevelopFramework/ClaudeAgentSDK/1. Claude Agent SDK.md`、`agnet-framework-history.md`
 - **现状**：硬编码 `claude-agent-sdk==0.1.62`，2026-09 已迭代到 0.3+/0.4+
 - **动作**：明确这是兼容国产模型的临时回退；提供回升级路径
 
-### 14. Smolagents / Deepagents API 路径变更
+### ✅ 14. Smolagents / Deepagents API 路径变更
 - **文件**：`catalyst/DevelopFramework/Smolagents/1. CodeAct.md`、`2. Usage.md`、`catalyst/DevelopFramework/Deepagents/1. Deepagens.md`
 - **现状**：`OpenAIModel` → `LiteLLMModel`、`from Deepagents` → `from deepagents`（小写）、`claude-sonnet-4-6` 已升级
 - **动作**：修正 import 路径与模型 ID
 
-### 15. Embedding 模型推荐过时
+### ✅ 15. Embedding 模型推荐过时
 - **文件**：`catalyst/Vector Store/advanced/TextEmbedding.md`、`catalyst/Agent/2. 黄焖鸡点餐例子.md`
 - **现状**：`all-MiniLM-L6-v2`、`BAAI/bge-base-en-v1.5`、`bert-base-uncased` 处理中文菜单；`text-embedding-v1` 已下线
 - **动作**：推荐 `bge-m3`、`nomic-embed-text-v2`、`bge-large-zh-v1.5`、`text-embedding-v3/v4`
 
-### 16. RedisAI 已弃用
+### ✅ 16. RedisAI 已弃用
 - **文件**：`catalyst/Vector Store/advanced/常用向量数据库.md`
 - **现状**：仍写 "RedisAI"，2024 年被 Redis 官方弃用，现 Redis 8 内置向量能力
 - **动作**：改为 Redis 8 / `redis-stack`
 
-### 17. Midjourney 版本演进
+### ✅ 17. Midjourney 版本演进
 - **文件**：`drawing/Midjourney/1. Midjourney.md`、`6. some prompts.md`、`2. prompt basic.md`、`3. prompt role consistency.md`、`5. prompt meme.md`、`8. 双角色一致.md`
 - **现状**：参数 `--v 5`、`--v 5.2`、`--niji 5`；v7 已发布且为默认；`--oref` 已覆盖双角色一致性
 - **动作**：统一到 v6/v7，`8. 双角色一致.md` 补充 `--oref` 多角色方案
 
-### 18. SD 主线仍是 A1111
+### ✅ 18. SD 主线仍是 A1111
 - **文件**：`drawing/Stable-Diffusion/1. WebUI.md`、`README.md:60`
 - **现状**：主线介绍 A1111，仓库已停滞；主流已转向 Forge/reForge/SD.Next；SD3/Flux/Wan/Qwen-Image 等新一代架构未提及
 - **动作**：补充 Forge、reForge、SD.Next；新增 SD3/Flux/Wan 章节
 
-### 19. Stable Diffusion advice.md 错误信息
+### ✅ 19. Stable Diffusion advice.md 错误信息
 - **文件**：`drawing/Stable-Diffusion/advice.md:22`
 - **现状**："目前的 ChatGPT 并不懂 2022 年以后的技术（比如 DALL-E 2、Stable Diffusion）" — GPT-4o 已支持原生图像生成
 - **动作**：重写整段
 
-### 20. dsh/multi-model-config 第三方包时效
+### ✅ 20. dsh/multi-model-config 第三方包时效
 - **文件**：`catalyst/LLMEngineering/AIWorkflow/Appendix3-multi-model-config.md`
 - **现状**：`cc-manager`、`cc-switch-config`、`@wcldyx/claude-code-switcher` 部分已停止维护
 - **动作**：建议使用 Claude Code 原生 `/model`、`--model`；社区工具加时效提示
 
-### 21. A2A 示例状态枚举
+### ✅ 21. A2A 示例状态枚举
 - **文件**：`catalyst/Agent/6. A2A.md` 与 `a2a-demo`
 - **现状**：`TaskState` 包含非规范化的状态
 - **动作**：对齐 v1.0 状态枚举

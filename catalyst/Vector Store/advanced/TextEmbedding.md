@@ -7,10 +7,11 @@
 ```py
 from sentence_transformers import SentenceTransformer
 
-# 加载模型
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')  # 384维向量
-# 或者使用更强大的模型
-# model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')  # 768维向量
+# 2026 推荐（多语言/中文场景）：
+# model = SentenceTransformer('BAAI/bge-m3')                    # 多语言，568 维，支持 8K 上下文
+# model = SentenceTransformer('BAAI/bge-large-zh-v1.5')        # 中文专用，1024 维
+# 英文轻量场景：
+model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')  # 384 维（轻量基线）
 
 # 生成文本向量
 vectors = model.encode(docs)
@@ -47,17 +48,19 @@ vectors = get_embeddings(docs)
 ---
 
 ## 3. 使用大模型的API
-比如OpenAI的API、阿里的API等
+例如：
+- OpenAI `text-embedding-3-small`（1536 维，2026 主流）
+- OpenAI `text-embedding-3-large` / `text-embedding-v4`（3072 维）
+- 阿里 DashScope `text-embedding-v3` / `text-embedding-v4`
+> 注：旧的 `text-embedding-ada-002`（已被 text-embedding-3-* 取代）与达摩院 `text-embedding-v1`（已下线）不再推荐。
 
 ---
 
 ## 选择建议：
-- 如果你需要快速实现文本相似度搜索，用Sentence Transformers
-- 如果你的应用场景特殊（如医疗、法律等专业领域），用Hugging Face Transformers，这样可以：
-  - 选择领域相关的预训练模型
-  - 自定义向量提取方式
-  - 进行领域适应性训练
-- 如果预算充足且追求最好的效果，用大模型的API
+- 通用中文/多语言 RAG：Sentence Transformers `BAAI/bge-m3`（首选）或 `BAAI/bge-large-zh-v1.5`
+- 轻量英文基线：Sentence Transformers `all-MiniLM-L6-v2`
+- 专业领域微调：Hugging Face Transformers，可选 `bert-base-uncased` 等基座
+- 闭源 API（2026 推荐）：OpenAI `text-embedding-3-small/large`、DashScope `text-embedding-v3/v4`
 
 ---
 
@@ -69,7 +72,8 @@ vectors = get_embeddings(docs)
 ```py
 from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+# 查询端必须使用与入库时一致的模型（如 bge-m3 / all-MiniLM-L6-v2）
+model = SentenceTransformer('BAAI/bge-m3')
 query_vector = model.encode(query_text)
 
 res = client.search(
@@ -106,7 +110,7 @@ res = client.search(
 
   - 低资源消耗：内存占用低（约 100MB），无需 GPU 加速。
 
-  - 即用型模型：内置多种预训练模型（如 `BAAI/bge-base-en`、`snowflake-arctic-embed-s`）。
+  - 即用型模型：内置多种预训练模型（如 `BAAI/bge-base-en`、`nomic-embed-text-v2`、`snowflake-arctic-embed-s`）。
 
   - 量化支持：提供 8-bit 量化模型，进一步压缩模型体积。
 
@@ -120,6 +124,7 @@ res = client.search(
 from fastembed import TextEmbedding
 
 # 初始化模型（自动下载预训练模型）
+# 2026 推荐：多语言场景用 bge-base-en-v1.5 或 bge-m3
 model = TextEmbedding(model_name="BAAI/bge-base-en-v1.5")
 
 # 单条文本向量化
@@ -184,9 +189,9 @@ qdrant = QdrantVectorStore.from_documents(
 **6. 最佳实践**
 - 模型选择：
 
-  - 通用场景：`BAAI/bge-base-en-v1.5`（平衡精度与速度）。
+  - 通用场景（2026）：`BAAI/bge-m3`（多语言首选）或 `BAAI/bge-base-en-v1.5`（英文基线）。
 
-  - 多语言场景：`snowflake/snowflake-arctic-embed-s`。
+  - 多语言/中文：`BAAI/bge-large-zh-v1.5`、`nomic-embed-text-v2`。
 
   - 极致轻量化：使用 `*-quantized` 量化模型（如 `BAAI/bge-base-en-v1.5-quantized`）。
 

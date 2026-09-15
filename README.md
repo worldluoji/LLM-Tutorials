@@ -57,7 +57,7 @@ LLM-Tutorials/
 ### `drawing/` — AI 绘图
 - **`CLIP/`** — CLIP 图文匹配模型（`dog-or-cat.py` 分类示例）
 - **`Midjourney/`** — Midjourney 提示词技巧：基础、角色一致性、故事化、表情包、双角色一致性、复杂场景
-- **`Stable-Diffusion/`** — SD 全套：WebUI / ComfyUI Workflow（text2image、image2image、upscale）、提示词、img2img、Diffusion/UNet/Sampler/VAE 原理、Civitai & HuggingFace、SD1.5 vs SDXL 对比
+- **`Stable-Diffusion/`** — SD 全套：WebUI / ComfyUI Workflow（text2image、image2image、upscale）、提示词、img2img、Diffusion/UNet/Sampler/VAE 原理、Civitai & HuggingFace、SD1.5 vs SDXL 对比；2026 补充章节覆盖 Forge / reForge / SD.Next 与新一代架构（SD3 / Flux / Wan）
 
 ### `openai-learning/` — OpenAI API 系列教程
 按章节递进，每章一个独立小工程：

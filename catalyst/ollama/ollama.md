@@ -10,18 +10,18 @@ curl -fsSL https://ollama.com/install.sh | sh
 ## 对话模式
 可以使用 ollama run 命令进入对话模式，从命令行运行效果看，我们已经可以将其看做命令行版本的 “GPT 大模型”了
 ```shell
-# 对话模式
-ollama run llama2-chinese
+# 2026 推荐：编码场景用 qwen2.5-coder:32b / qwen3-coder:30b；通用对话用 qwen2.5:32b
+ollama run qwen2.5-coder:32b
 ```
 
 ## 接口 API
-这里面有一个 Modelfile，它是 Ollama 大模型的配置文件，你可以修改各种配置，然后运行接口程序。比如下面配置了一个基于 Llama2 的大模型，设置了温度，token 数量和系统提示词。
+这里面有一个 Modelfile，它是 Ollama 大模型的配置文件，你可以修改各种配置，然后运行接口程序。比如下面配置了一个基于 Qwen2.5-Coder 的大模型，设置了温度、token 数量和系统提示词。
 ```
-FROM llama2
+FROM qwen2.5-coder:32b
 # 设定温度参数为1 [更高的更具有创新性，更低的更富有连贯性]
 PARAMETER temperature 1
-# 将上下文窗口大小设置为4096，这控制着LLM能够使用多少个token来生成下一个token。
-PARAMETER num_ctx 4096
+# 上下文窗口：2026 推荐默认 32768；Ollama 历史默认值 4096 过小，编码长上下文需显式放大
+PARAMETER num_ctx 32768
 
 # 设置了自定义系统消息以指定聊天助手的行为。你是马里奥，来自《超级马里奥兄弟》，扮演一名助手的角色。
 SYSTEM You are Mario from super mario bros, acting as an assistant.
@@ -41,7 +41,7 @@ url = "http://localhost:11434/api/chat"
 
 # 定义请求数据
 data = {
-    "model": "llama2",
+    "model": "qwen2.5-coder:32b",
     "messages": [
         {"role": "user", "content": "Why is the sky blue?"}
     ]
@@ -79,4 +79,5 @@ train_data = [
 还可以使用 Hugging Face 的 transformers 库结合上述数据进行微调, 这样就可以让微调后的大模型学习到小助理日常的对话方式和常见的知识问答。
 
 ## reference
-https://ollama.com/download/linux
+- https://ollama.com/download/linux
+- 模型推荐（2026）：`qwen2.5-coder:32b` / `qwen3-coder:30b` / `deepseek-coder-v2` / `qwen2.5:32b`；旧文档示例中的 `llama2` / `llama2-chinese` / `codellama:7b` 已不再推荐。
