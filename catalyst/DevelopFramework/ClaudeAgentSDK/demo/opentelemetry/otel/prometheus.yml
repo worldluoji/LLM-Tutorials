@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'otel-collector'
+    scrape_interval: 10s
+    static_configs:
+      # 这里的地址是容器内部网络地址
+      - targets: ['otel-collector:8889']

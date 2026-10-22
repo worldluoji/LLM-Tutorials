@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # 1. OpenTelemetry Collector: 数据枢纽
+  otel-collector:
+    image: docker.1ms.run/otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      # 暴露 4318 端口，供你本地的 Agent 程序通过 HTTP 推送数据
+      - "4318:4318"
+      - "4317:4317"
+      # 暴露 8889 端口，供 Prometheus 拉取 Metrics
+      - "8889:8889" 
+    depends_on:
+      - jaeger
+
+  # 2. Jaeger: 接收并展示 Traces
+  jaeger:
+    image: docker.1ms.run/jaegertracing/all-in-one:latest
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      # Jaeger UI 界面
+      - "16686:16686" 
+      # (可选) 如果需要接收 Zipkin 格式数据可开启
+      # - "9411:9411" 
+
+  # 3. Prometheus: 接收并存储 Metrics
+  prometheus:
+    image: docker.1ms.run/prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      # Prometheus UI 界面
+      - "9090:9090" 
+
+  # 4. Grafana: 统一可视化大盘
+  grafana:
+    image: docker.1ms.run/grafana/grafana:latest
+    environment:
+      # 设置默认登录账号密码
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      # Grafana UI 界面
+      - "3000:3000" 
+    depends_on:
+      - prometheus
+      - jaeger
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
