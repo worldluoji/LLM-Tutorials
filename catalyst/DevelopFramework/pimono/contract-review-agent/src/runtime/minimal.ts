@@ -21,6 +21,9 @@ async function main() {
   });
 
   session.subscribe((event) => {
+    // message_update 是"流式输出"事件，assistantMessageEvent 里还有一层子类型需要再收窄：
+    // text_delta 表示正文新增的片段（这里只匹配 text_delta，而没有匹配thinking_delta，所以模型的思考过程不会被打印到终端）。
+    // delta 是增量而非全文，按顺序逐片 write 即可拼成打字机效果。
     if (event.type === "message_update" && event.assistantMessageEvent.type === "text_delta") {
       process.stdout.write(event.assistantMessageEvent.delta);
     }
