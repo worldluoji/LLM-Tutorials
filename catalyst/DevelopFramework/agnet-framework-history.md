@@ -49,13 +49,87 @@ Claude Code、OpenClaw（其底层 Agent 是 Pi-Mono）被公认为是在 Harnes
 ##  Claude Agent SDK、DeepAgents、Pi-mono、dsh 的对比
 ![](./dsh/compare.png)
 
+> 此外还有一条不同的路线：Smolagents 用约一千行代码从零手写 Agent Loop，并以 CodeAct 范式（让模型写代码而非逐个调工具）见长。它更像学习路径上的起点，而非上述四者的同层竞品，详见下文"如何选择"。
+
 ---
 
 ## 如何选择？
-- 如果你想要最快复刻一个 Claude Code 级别的产品，Claude Agent SDK 依然是首选。
-- 如果你的团队已经在 LangChain/LangGraph 上有很多积累，DeepAgents 是平滑升级路径。
-- 如果你希望源码完全透明、想深度定制循环和 UI，Pi-mono 是很好的开源选择。
-- 如果你相信“未来 Agent 能力应该像 VS Code 插件一样可插拔”，那 DeepSeek Harness 值得你重点研究。
+
+上面几个框架并不是同一维度上的竞品，也不是"谁更强"的关系。选型时最常见的误区是：默认自己一定需要一个 Harness，然后在这几个名字里挑一个。实际上，真正决定结果的是**你的业务本身**——在讨论"用哪个框架"之前，应该先过四道过滤器。
+
+### 第一道：你的业务流程可以枚举吗？
+
+这是最重要、也最容易被跳过的一道。
+
+如果业务步骤是确定的、可以穷举的（比如固定格式的研报生成、固定清单的合同条款审查），那么诚实的答案是：**你不需要 Agent Loop，你需要工作流**。用 LangGraph 或普通代码把节点串起来，每一步的模型只负责该步骤内的一个小任务，可测性、可回归性、单步成本全都可控。在这种场景里，Agent 的不确定性是纯粹的负担。
+
+只有当"下一步做什么"本身就需要模型根据现场情况动态决定时，Harness 的价值才真正体现出来。本系列的《Claude Agent SDK》《Deepagents》《Pi-mono》几篇，选的都是后者——这也是它们有存在意义的前提。
+
+### 第二道：语言栈
+
+| 框架 | 语言 |
+| :--- | :--- |
+| Smolagents | Python |
+| Claude Agent SDK | Python / TypeScript |
+| DeepAgents | Python |
+| Pi-mono | TypeScript |
+| dsh | Node.js / TypeScript |
+
+团队的主力语言通常是一票否决项。如果团队是 Java / Go / C++，这五个里没有一个是原生选项——那现实的选择是先确认"要不要用 Python 写一层薄 Agent，把编排放在别的语言里"，或者干脆退回上一道题，走工作流路线。
+
+### 第三道：模型供应商受不受限
+
+| 框架 | 模型约束 |
+| :--- | :--- |
+| Claude Agent SDK | 走 Anthropic 协议端点。国产模型需要改环境变量接兼容端点，且工具调用 API 变更频繁（本系列就被迫锁定 0.1.62，见文末说明） |
+| DeepAgents | 对外只有 DeepSeek 能用 `provider:model` 的简洁写法，其余国内模型需退回 LangChain 的 `ChatOpenAI` |
+| Pi-mono | `pi-ai` 层统一了各家 Provider，OpenAI 兼容接口即可接入，是这几个里最宽容的 |
+| Smolagents | 走 LiteLLM，换模型几乎零成本 |
+| dsh | 模型适配器本身就是插件，换 provider 不需要动框架 |
+
+### 第四道：你能接受多少自维护成本
+
+真正的判断维度是：**当 Agent Loop 的行为不符合预期时，你能不能自己进去改。**
+
+- **Claude Agent SDK**：不能改，只能等官方。但反过来说，升级和修 bug 也都由官方兜底。
+- **DeepAgents**：能改，但要读懂 LangGraph 的运行时。
+- **Pi-mono**：能改，源码就在本地，逐行跟进去看循环怎么调 LLM、工具怎么执行；代价是你自己接手了长期维护。
+- **dsh**：能改，而且 Agent Loop 本身就是插件——但它目前处于开发者预览阶段，npm 上部分包的 latest 标签还指向坏版本（详见 `dsh.md`）。
+- **Smolagents**：本来就只有一千行左右的源码，天然可读可改。
+
+### 五者的定位
+
+| 框架 | 一句话定位 | 适合 | 不适合 |
+| :--- | :--- | :--- | :--- |
+| Smolagents | 千行级手写 Agent Loop，CodeAct 范式 | 学习与原型；数据分析、代码类任务；想彻底搞懂 Agent Loop 内部机制 | 长任务、需要上下文管理与护栏的生产场景 |
+| Claude Agent SDK | 闭源但开箱即用度最高的 Harness | 追求最快上线；用 Claude 模型；需要成熟的上下文压缩与 Skills/Hooks | 需要深度定制 Loop；被模型厂商绑定；版本滞后 |
+| DeepAgents | LangChain 团队的 Harness 实现 | 团队已有 LangChain 积累，但想要 Agent 形态而非图形态 | 核心资产是编排拓扑（复杂状态图）的团队 |
+| Pi-mono | 分层清晰、源码透明的 TS 框架 | TypeScript 团队；要自定义压缩策略、循环与终端 UI | Python 团队；不愿承担长期维护责任 |
+| dsh | Cordis 插件树驱动的"一切皆插件"运行时 | 研究插件化 Agent 架构；写插件练手 | 生产选型（预览阶段，生态与发布流程尚不稳定） |
+
+关于 **Smolagents**，它值得单独说一句：它是这几个里唯一"从零手写 Agent Loop"的框架（核心逻辑仅约 1000 行），也提供了一条与其余框架都不同的技术路线——**CodeAct**，即让模型写代码而不是逐个调用工具。这既省工具数量，又省上下文，所以在数据分析这类"代码不固定、边写边改"的场景里格外有效。但它恰恰缺少上下文管理、长期记忆、反思机制和安全护栏这些 Harness 组件。所以它不是上面四者的竞争者，而是**学习路径上的第一站**与特定场景下的轻量选项。
+
+### 把选型与框架解耦
+
+这一条直接对应上面"Agent 开发本质"那节的结论：真正该投入的是提示词、工具和 Skills，而不是框架。
+
+所以更稳妥的做法是**两层解耦**：
+
+- **业务层**：把业务能力沉淀成 MCP Server 与 Skills。这层是可移植的——Claude Agent SDK、DeepAgents、Pi-mono、Smolagents 都支持接入 MCP，Skills 的格式也正在跨框架趋同。
+- **框架层**：Harness 本身是可替换的。Agent Loop、上下文压缩策略、沙箱机制都在快速演进，今天的最佳实践两年后大概率要重写。
+
+按这个顺序做，即使选错框架，业务资产也不会跟着一起报废。
+
+### 速查
+
+四道题都过了之后，再回到最初那个问题：
+
+- 想最快拿到 Claude Code 级别的能力 → **Claude Agent SDK**（前提：用 Claude 模型、接受闭源与版本滞后）
+- 团队已有 LangChain/LangGraph 积累，但想要 Agent 形态 → **DeepAgents**
+- 已经用 LangGraph 搭了复杂编排拓扑 → **留在 LangGraph**，不必迁到 DeepAgents
+- TypeScript 团队 + 想深度定制循环和 UI → **Pi-mono**
+- 数据分析/科学计算为主，或想从零理解 Agent Loop → **Smolagents**
+- 相信 Agent 能力应该像 VS Code 插件一样可插拔 → **dsh**（当前定位是研究与练手，暂不建议作为生产底座）
 
 > **Claude Agent SDK 版本说明**：当前 `ClaudeAgentSDK/1. Claude Agent SDK.md` 锁定的 `claude-agent-sdk==0.1.62` 是为兼容国产模型（避免调用工具时 400 bad request）的临时回退；上游 2026-09 已迭代到 0.3.x / 0.4.x。仅当确认国产模型厂商已跟进新 API 后，再按 `0.4 → 0.3 → 0.2 → 0.1.62` 的顺序回退验证。
 
